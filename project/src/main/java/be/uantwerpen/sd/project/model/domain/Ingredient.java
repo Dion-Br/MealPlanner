@@ -1,27 +1,37 @@
 package be.uantwerpen.sd.project.model.domain;
 
-public class Ingredient {
-    private String name;
-    private double amount;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-    public Ingredient(String name, double amount) {
-        this.name = name;
-        this.amount = amount;
+public class Ingredient extends MealComponent{
+    private double quantity;
+
+    public Ingredient(String name, double quantity) {
+        super(name);
+        this.quantity = quantity;
     }
 
-    public String getName() {
-        return name;
+
+    public double getQuantity() {
+        return quantity;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setQuantity(double quantity) {
+        this.quantity = quantity;
     }
 
-    public double getAmount() {
-        return amount;
+    @Override
+    public List<Ingredient> getIngredients() {
+        return Collections.singletonList(this); //empty list with just this ingr
     }
 
-    public void setAmount(double amount) {
-        this.amount = amount;
+    @Override
+    public String toString() {
+        return "Ingredient{" +
+                ", quantity=" + getQuantity() +
+                ", name='" + getName() + '\'' +
+                ", name='" + getName() + '\'' +
+                "} " + super.toString();
     }
 }

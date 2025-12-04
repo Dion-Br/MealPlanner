@@ -3,25 +3,35 @@ package be.uantwerpen.sd.project.model.domain;
 
 import org.yaml.snakeyaml.nodes.Tag;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class Recipe {
-    private String title;
+public class Recipe extends MealComponent {
     private String description;
-    private List<Ingredient> ingredients;
+    private List<MealComponent> components = new ArrayList<>(); //ofwel subrecipe ofwel ingredients
 
-    public Recipe(String title, String description, List<Ingredient> ingredients) {
-        this.title = title;
+    public Recipe(String name, String description) {
+        super(name);
         this.description = description;
-        this.ingredients = ingredients;
     }
 
-    public String getTitle() {
-        return title;
+    @Override
+    public void add(MealComponent component) {
+        components.add(component);
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    @Override
+    public void remove(MealComponent component) {
+        components.remove(component);
+    }
+
+    @Override
+    public List<Ingredient> getIngredients() {
+        List<Ingredient> ingredients = new ArrayList<>();
+        for (MealComponent component : components){
+            ingredients.addAll(component.getIngredients());
+        }
+        return ingredients;
     }
 
     public String getDescription() {
@@ -32,11 +42,13 @@ public class Recipe {
         this.description = description;
     }
 
-    public List<Ingredient> getIngredients() {
-        return ingredients;
-    }
-
-    public void setIngredients(List<Ingredient> ingredients) {
-        this.ingredients = ingredients;
+    @Override
+    public String toString() {
+        return "Recipe{" +
+                "description='" + getDescription() + '\'' +
+                ", components=" + components +
+                ", name='" + getName() + '\'' +
+                ", name='" + getName() + '\'' +
+                "} " + super.toString();
     }
 }
