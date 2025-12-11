@@ -5,11 +5,10 @@ import java.util.*;
 
 public class DayPlan {
     private DaysOfTheWeek day;
-    private List<PlannedMeal> plannedMeals;
+    private List<PlannedMeal> plannedMeals = new ArrayList<>();
 
-    public DayPlan(DaysOfTheWeek day, List<PlannedMeal> plannedMeals) {
+    public DayPlan(DaysOfTheWeek day) {
         this.day = day;
-        this.plannedMeals = plannedMeals;
     }
 
     public void addPlannedMeal(PlannedMeal newMeal){
