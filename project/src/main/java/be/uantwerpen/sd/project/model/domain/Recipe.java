@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Recipe extends MealComponent {
     private String description;
-    private List<MealComponent> components = new ArrayList<>(); //ofwel subrecipe ofwel ingredients
+    private List<MealComponent> components = new ArrayList<>(); //either sub-recipes or ingredients
 
     public Recipe(String name, String description) {
         super(name);
@@ -40,6 +40,14 @@ public class Recipe extends MealComponent {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public List<MealComponent> getComponents() {
+        return components;
+    }
+
+    public void setComponents(List<MealComponent> components) {
+        this.components = components;
     }
 
     @Override
