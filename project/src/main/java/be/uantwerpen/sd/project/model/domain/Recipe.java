@@ -1,8 +1,4 @@
 package be.uantwerpen.sd.project.model.domain;
-
-
-import org.yaml.snakeyaml.nodes.Tag;
-
 import java.util.ArrayList;
 import java.util.List;
 

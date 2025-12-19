@@ -50,8 +50,7 @@ public class RecipeFxView extends VBox implements RecipeView{
             if (inName != null && !inName.isBlank() && inQty != null && !inQty.isBlank()) {
                 try {
                     double qty = Double.parseDouble(inQty);
-                    Ingredient ingredient = new Ingredient(inName, qty);
-                    ingredients.add(ingredient);
+                    controller.addIngredient(inName, qty);
                     ingredientItems.add(inName + " (" + qty + ")");
                     ingredientNameField.clear();
                     ingredientQuantityField.clear();
@@ -63,11 +62,22 @@ public class RecipeFxView extends VBox implements RecipeView{
             }
         });
 
-        Button removeIngredientBtn = new Button("Remove Selected");
-        removeIngredientBtn.setOnAction(e -> {
+        Button removeRecipeBtn = new Button("Remove Recipe");
+        removeRecipeBtn.setOnAction(e -> {
             int index = recipeListView.getSelectionModel().getSelectedIndex();
-            if (index >= 0 && controller != null) {
-                controller.removeRecipe(currentRecipes.get(index));
+            if (index >= 0) {
+                Recipe selectedRecipe = currentRecipes.get(index);
+                controller.removeRecipe(selectedRecipe);
+                recipeDetailsArea.clear();
+            }
+        });
+
+        Button removeIngredientBtn = new Button("Remove Ingredient");
+        removeIngredientBtn.setOnAction(e -> {
+            int index = ingredientListView.getSelectionModel().getSelectedIndex();
+            if (index >= 0) {
+                controller.removeIngredient(index);
+                ingredientItems.remove(index);
                 recipeDetailsArea.clear();
             }
         });
@@ -80,7 +90,7 @@ public class RecipeFxView extends VBox implements RecipeView{
         Button saveRecipeBtn = new Button("Save Recipe");
         saveRecipeBtn.setOnAction(e -> {
             if (controller != null) {
-                controller.addRecipe(nameField.getText(), descriptionField.getText(), new ArrayList<>(ingredients));
+                controller.addRecipe(nameField.getText(), descriptionField.getText());
                 nameField.clear();
                 descriptionField.clear();
                 ingredients.clear();
@@ -88,7 +98,7 @@ public class RecipeFxView extends VBox implements RecipeView{
             }
         });
 
-        VBox formBox = new VBox(5, formLabel, nameField, descriptionField, ingredientBox, ingredientListView, saveRecipeBtn);
+        VBox formBox = new VBox(5, formLabel, nameField, descriptionField, ingredientBox, ingredientListView, saveRecipeBtn, removeRecipeBtn);
 
         // --- Recipe display ---
         Label recipeLabel = new Label("Recipes");
