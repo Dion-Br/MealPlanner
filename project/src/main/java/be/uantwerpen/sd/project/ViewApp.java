@@ -7,8 +7,6 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.util.Arrays;
-
 public class ViewApp extends Application {
     public static void main(String[] args){
         launch(args);

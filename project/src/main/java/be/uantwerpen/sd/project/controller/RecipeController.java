@@ -26,13 +26,9 @@ public class RecipeController {
         }
     }
 
-    public void removeRecipe(int index) {
-        List<Recipe> recipes = recipeService.getAllRecipes();
-        if (index >= 0 && index < recipes.size()) {
-            Recipe recipe = recipes.get(index);
-            recipeService.removeRecipe(recipe);
-            getRecipes();
-        }
+    public void removeRecipe(Recipe recipe) {
+        recipeService.removeRecipe(recipe);
+        getRecipes();
     }
 
     public void getRecipes() {

@@ -67,7 +67,7 @@ public class RecipeFxView extends VBox implements RecipeView{
         removeIngredientBtn.setOnAction(e -> {
             int index = recipeListView.getSelectionModel().getSelectedIndex();
             if (index >= 0 && controller != null) {
-                controller.removeRecipe(index);
+                controller.removeRecipe(currentRecipes.get(index));
                 recipeDetailsArea.clear();
             }
         });
