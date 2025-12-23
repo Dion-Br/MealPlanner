@@ -5,6 +5,7 @@ import be.uantwerpen.sd.project.model.domain.MealComponent;
 import be.uantwerpen.sd.project.model.domain.Recipe;
 import be.uantwerpen.sd.project.service.RecipeService;
 import be.uantwerpen.sd.project.view.RecipeView;
+import be.uantwerpen.sd.project.model.domain.enums.Unit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,12 +19,12 @@ public class RecipeController {
         this.view = view;
     }
 
-    public void addIngredient(String name, double quantity) {
-        if (name == null || name.isBlank() || quantity <= 0) {
-            view.showError("Ingredient name cannot be empty and quantity must be positive.");
+    public void addIngredient(String name, double quantity, Unit unit) {
+        if (name == null || name.isBlank() || quantity <= 0 || unit == null) {
+            view.showError("Invalid input. Name, quantity and unit are required.");
             return;
         }
-        currentIngredients.add(new Ingredient(name, quantity));
+        currentIngredients.add(new Ingredient(name, quantity, unit));
     }
 
     public void removeIngredient(int index) {

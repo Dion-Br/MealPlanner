@@ -29,7 +29,7 @@ public class WeeklyMealPlanController {
 
     public void addMealToPlan(DaysOfTheWeek day, MealType type, Recipe recipe) {
         if (day == null || type == null || recipe == null) {
-            // In a real app, show error in view
+            // show error in view
             System.err.println("Invalid input for meal plan");
             return;
         }

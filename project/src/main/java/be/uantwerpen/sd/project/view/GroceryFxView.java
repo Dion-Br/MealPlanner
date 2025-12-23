@@ -1,7 +1,9 @@
 package be.uantwerpen.sd.project.view;
 
+import be.uantwerpen.sd.project.model.domain.enums.Unit;
 import be.uantwerpen.sd.project.model.domain.GroceryItem;
 import be.uantwerpen.sd.project.model.domain.GroceryListGenerator;
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxListCell;
@@ -30,7 +32,7 @@ public class GroceryFxView extends VBox {
             public void updateItem(GroceryItem item, boolean empty) {
                 super.updateItem(item, empty);
                 if (item != null && !empty) {
-                    setText(item.getName() + " (" + item.getQuantity() + ")");
+                    setText(String.format("%s (%.2f %s)", item.getName(), item.getQuantity(), item.getUnit()));
                 } else {
                     setText(null);
                 }
@@ -44,14 +46,18 @@ public class GroceryFxView extends VBox {
         TextField qtyField = new TextField();
         qtyField.setPromptText("Qty");
         qtyField.setPrefWidth(60);
+        ComboBox<Unit> unitCombo = new ComboBox<>(FXCollections.observableArrayList(Unit.values()));
+        unitCombo.getSelectionModel().selectFirst();
 
         Button addBtn = new Button("Add");
         addBtn.setOnAction(e -> {
             try {
                 String name = nameField.getText();
                 double qty = Double.parseDouble(qtyField.getText());
+                Unit unit = unitCombo.getValue();
+
                 if (!name.isBlank()) {
-                    generator.addManualItem(name, qty);
+                    generator.addManualItem(name, qty, unit);
                     nameField.clear();
                     qtyField.clear();
                 }
@@ -60,7 +66,7 @@ public class GroceryFxView extends VBox {
             }
         });
 
-        HBox inputBox = new HBox(5, nameField, qtyField, addBtn);
+        HBox inputBox = new HBox(5, nameField, qtyField, unitCombo, addBtn);
 
         getChildren().addAll(title, listView, inputBox);
     }

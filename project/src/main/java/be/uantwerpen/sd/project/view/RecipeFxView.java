@@ -4,6 +4,7 @@ import be.uantwerpen.sd.project.controller.RecipeController;
 import be.uantwerpen.sd.project.model.domain.Ingredient;
 import be.uantwerpen.sd.project.model.domain.MealComponent;
 import be.uantwerpen.sd.project.model.domain.Recipe;
+import be.uantwerpen.sd.project.model.domain.enums.Unit;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -27,6 +28,7 @@ public class RecipeFxView extends VBox implements RecipeView{
     private final ListView<String> ingredientListView = new ListView<>();
     private final ObservableList<String> ingredientItems = FXCollections.observableArrayList();
     private final List<MealComponent> ingredients = new ArrayList<>();
+    private final ComboBox<Unit> unitComboBox = new ComboBox<>(FXCollections.observableArrayList(Unit.values()));
 
     private RecipeController controller;
 
@@ -42,23 +44,28 @@ public class RecipeFxView extends VBox implements RecipeView{
 
         ingredientNameField.setPromptText("Ingredient Name");
         ingredientQuantityField.setPromptText("Quantity");
+        unitComboBox.setPromptText("Unit");
+        // Default to the first unit
+        unitComboBox.getSelectionModel().selectFirst();
 
         Button addIngredientBtn = new Button("Add Ingredient");
         addIngredientBtn.setOnAction(e -> {
             String inName = ingredientNameField.getText();
             String inQty = ingredientQuantityField.getText();
-            if (inName != null && !inName.isBlank() && inQty != null && !inQty.isBlank()) {
+            Unit selectedUnit = unitComboBox.getValue();
+            if (inName != null && !inName.isBlank() && inQty != null && !inQty.isBlank() && selectedUnit != null) {
                 try {
                     double qty = Double.parseDouble(inQty);
-                    controller.addIngredient(inName, qty);
-                    ingredientItems.add(inName + " (" + qty + ")");
+                    controller.addIngredient(inName, qty, selectedUnit);
+                    ingredientItems.add(inName + " (" + qty + " " + selectedUnit + ")");
                     ingredientNameField.clear();
                     ingredientQuantityField.clear();
+                    unitComboBox.getSelectionModel().selectFirst();
                 } catch (NumberFormatException ex) {
                     showError("Quantity must be a number.");
                 }
             } else {
-                showError("Ingredient name and quantity cannot be empty.");
+                showError("Ingredient name, quantity and unit cannot be empty.");
             }
         });
 
@@ -85,7 +92,7 @@ public class RecipeFxView extends VBox implements RecipeView{
         ingredientListView.setItems(ingredientItems);
         ingredientListView.setPrefHeight(100);
 
-        HBox ingredientBox = new HBox(5, ingredientNameField, ingredientQuantityField, addIngredientBtn, removeIngredientBtn);
+        HBox ingredientBox = new HBox(5, ingredientNameField, ingredientQuantityField, unitComboBox, addIngredientBtn, removeIngredientBtn);
 
         Button saveRecipeBtn = new Button("Save Recipe");
         saveRecipeBtn.setOnAction(e -> {
