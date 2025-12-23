@@ -115,10 +115,29 @@ public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeLi
                 dayBox.getChildren().add(new Label("No meals planned."));
             } else {
                 for (PlannedMeal pm : dayPlan.getPlannedMeals()) {
+                    // Create a container for the row
+                    HBox mealRow = new HBox(10);
+
+                    // Text for the meal
                     String text = String.format("%-10s : %s",
                             pm.getMealType(),
                             pm.getMealComponent().getName());
-                    dayBox.getChildren().add(new Label(text));
+                    Label mealLabel = new Label(text);
+
+                    // [NEW] Remove Button
+                    Button removeBtn = new Button("x");
+                    removeBtn.setStyle("-fx-text-fill: red; -fx-font-weight: bold; -fx-padding: 2 5 2 5;");
+                    removeBtn.setOnAction(e -> {
+                        if (controller != null) {
+                            controller.removeMeal(pm, dayPlan);
+                        }
+                    });
+
+                    // Add label and button to the row
+                    mealRow.getChildren().addAll(mealLabel, removeBtn);
+
+                    // Add the row to the day's box
+                    dayBox.getChildren().add(mealRow);
                 }
             }
             daysContainer.getChildren().add(dayBox);

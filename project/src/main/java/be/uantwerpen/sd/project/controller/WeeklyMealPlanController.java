@@ -47,6 +47,8 @@ public class WeeklyMealPlanController {
     }
 
     public void removeMeal(PlannedMeal meal, DayPlan dayPlan) {
-        // Logic to remove if needed (Optional requirement)
+        if (meal != null && dayPlan != null) {
+            dayPlan.removePlannedMeal(meal);
+        }
     }
 }

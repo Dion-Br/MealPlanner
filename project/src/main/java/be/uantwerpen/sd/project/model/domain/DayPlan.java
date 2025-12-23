@@ -21,6 +21,12 @@ public class DayPlan {
         if (parent != null) parent.notifyObservers();
     }
 
+    public void removePlannedMeal(PlannedMeal mealToRemove) {
+        if (this.plannedMeals.remove(mealToRemove)) {
+            if (parent != null) parent.notifyObservers();
+        }
+    }
+
     // Eventueel als we een verschuif functie in de agenda willen gebruiken
     public void changeDayOfTheWeek(DaysOfTheWeek newDay){
         this.day = newDay;
