@@ -1,25 +1,42 @@
 package be.uantwerpen.sd.project.model.domain;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+
 public class GroceryItem {
     private String name;
     private double quantity;
-    private boolean bought;
+    private final BooleanProperty bought = new SimpleBooleanProperty(false);
 
     public GroceryItem(String name, double quantity) {
         this.name = name;
         this.quantity = quantity;
-        this.bought = false;
     }
 
     public void addQuantity(double amount) {
         this.quantity += amount;
     }
 
-    // Getters and Setters
-    public String getName() { return name; }
-    public double getQuantity() { return quantity; }
-    public boolean isBought() { return bought; }
-    public void setBought(boolean bought) { this.bought = bought; }
+    public String getName() {
+        return name;
+    }
+
+    public double getQuantity() {
+        return quantity;
+    }
+
+    // JavaFX Property for the checkbox
+    public BooleanProperty boughtProperty() {
+        return bought;
+    }
+
+    public boolean isBought() {
+        return bought.get();
+    }
+
+    public void setBought(boolean bought) {
+        this.bought.set(bought);
+    }
 
     @Override
     public String toString() {

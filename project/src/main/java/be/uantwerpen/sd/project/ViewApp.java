@@ -1,10 +1,14 @@
 package be.uantwerpen.sd.project;
 
 import be.uantwerpen.sd.project.controller.RecipeController;
-import be.uantwerpen.sd.project.model.domain.Ingredient;
+import be.uantwerpen.sd.project.model.domain.GroceryListGenerator;
+import be.uantwerpen.sd.project.model.domain.WeeklyMealPlan;
+import be.uantwerpen.sd.project.view.GroceryFxView;
 import be.uantwerpen.sd.project.view.RecipeFxView;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 
 public class ViewApp extends Application {
@@ -14,13 +18,32 @@ public class ViewApp extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        RecipeFxView view = new RecipeFxView();
-        RecipeController controller = new RecipeController(view);
-        view.setController(controller);
+        // 1. Create Models
+        WeeklyMealPlan mealPlan = new WeeklyMealPlan(); // The source of truth
+        GroceryListGenerator groceryGen = new GroceryListGenerator(mealPlan); // The observer
 
-        Scene scene = new Scene(view, 800, 700);
+        // 2. Create Views
+        RecipeFxView recipeView = new RecipeFxView();
+        GroceryFxView groceryView = new GroceryFxView(groceryGen);
+
+        // 3. Setup Controllers
+        RecipeController recipeController = new RecipeController(recipeView);
+        recipeView.setController(recipeController);
+
+        // 4. Layout with Tabs
+        TabPane tabPane = new TabPane();
+
+        Tab recipeTab = new Tab("Recipes", recipeView);
+        recipeTab.setClosable(false);
+
+        Tab groceryTab = new Tab("Grocery List", groceryView);
+        groceryTab.setClosable(false);
+
+        tabPane.getTabs().addAll(recipeTab, groceryTab);
+
+        Scene scene = new Scene(tabPane, 800, 700);
         stage.setScene(scene);
-        stage.setTitle("Recipe Manager");
+        stage.setTitle("Smart Meal Planner");
         stage.show();
     }
 }
