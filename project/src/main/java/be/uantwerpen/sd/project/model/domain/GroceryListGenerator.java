@@ -11,6 +11,7 @@ public class GroceryListGenerator implements PropertyChangeListener {
     private WeeklyMealPlan plan;
     // Use ObservableList for JavaFX binding
     private ObservableList<GroceryItem> items = FXCollections.observableArrayList();
+    private final Map<String, Double> manualItems = new HashMap<>();
 
     public GroceryListGenerator(WeeklyMealPlan plan) {
         this.plan = plan;
@@ -26,7 +27,12 @@ public class GroceryListGenerator implements PropertyChangeListener {
     }
 
     private void regenerate() {
-        // Calculate totals using a temporary map
+        Map<String, Boolean> boughtStatus = new HashMap<>();
+        for (GroceryItem item : items) {
+            boughtStatus.put(item.getName(), item.isBought());
+        }
+
+        // Calculate totals from the Weekly Plan
         Map<String, Double> totals = new HashMap<>();
 
         for (DayPlan day : plan.getDayPlans()) {
@@ -39,12 +45,23 @@ public class GroceryListGenerator implements PropertyChangeListener {
             }
         }
 
-        // Update the ObservableList keep "bought" status if possible,
-        // or just clear and refill for simplicity initially)
-        items.clear();
-        totals.forEach((name, qty) -> items.add(new GroceryItem(name, qty)));
+        // Merge in the manual items
+        manualItems.forEach((name, qty) ->
+                totals.merge(name, qty, Double::sum)
+        );
 
-        // Debug
+        // Rebuild the list
+        items.clear();
+        totals.forEach((name, qty) -> {
+            GroceryItem newItem = new GroceryItem(name, qty);
+
+            // Restore the bought checkmark
+            if (boughtStatus.getOrDefault(name, false)) {
+                newItem.setBought(true);
+            }
+            items.add(newItem);
+        });
+
         System.out.println("Regenerated Grocery List: " + items);
     }
 
@@ -52,16 +69,8 @@ public class GroceryListGenerator implements PropertyChangeListener {
         return items;
     }
 
-    // Method to add manual items (Requirement)
     public void addManualItem(String name, double quantity) {
-        // Check if exists
-        for(GroceryItem item : items) {
-            if(item.getName().equalsIgnoreCase(name)) {
-                item.addQuantity(quantity);
-                // Force refresh in UI might be needed depending on implementation
-                return;
-            }
-        }
-        items.add(new GroceryItem(name, quantity));
+        manualItems.merge(name, quantity, Double::sum);
+        regenerate();
     }
 }
