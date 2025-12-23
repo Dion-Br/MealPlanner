@@ -13,6 +13,9 @@ import javafx.util.StringConverter;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeListener {
     private final WeeklyMealPlan model;
@@ -102,7 +105,7 @@ public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeLi
     private void renderDays() {
         daysContainer.getChildren().clear();
 
-        for (DayPlan dayPlan : model.getDayPlans()) {
+        for (DayPlan dayPlan : model.getDayPlans()) { //
             VBox dayBox = new VBox(5);
             dayBox.setStyle("-fx-background-color: #f4f4f4; -fx-padding: 10; -fx-background-radius: 5;");
 
@@ -111,10 +114,14 @@ public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeLi
 
             dayBox.getChildren().add(dayTitle);
 
-            if (dayPlan.getPlannedMeals().isEmpty()) {
+            if (dayPlan.getPlannedMeals().isEmpty()) { //
                 dayBox.getChildren().add(new Label("No meals planned."));
             } else {
-                for (PlannedMeal pm : dayPlan.getPlannedMeals()) {
+                // [CHANGED] Create a copy of the list and sort it by MealType (enum order)
+                List<PlannedMeal> sortedMeals = new ArrayList<>(dayPlan.getPlannedMeals());
+                sortedMeals.sort(Comparator.comparing(PlannedMeal::getMealType));
+
+                for (PlannedMeal pm : sortedMeals) {
                     // Create a container for the row
                     HBox mealRow = new HBox(10);
 
@@ -124,7 +131,7 @@ public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeLi
                             pm.getMealComponent().getName());
                     Label mealLabel = new Label(text);
 
-                    // [NEW] Remove Button
+                    // Remove Button
                     Button removeBtn = new Button("x");
                     removeBtn.setStyle("-fx-text-fill: red; -fx-font-weight: bold; -fx-padding: 2 5 2 5;");
                     removeBtn.setOnAction(e -> {

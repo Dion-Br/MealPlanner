@@ -18,4 +18,20 @@ public enum Unit {
     public String toString() {
         return label;
     }
+
+    public Unit getBaseUnit() {
+        return switch (this) {
+            case KILOGRAM -> GRAM;
+            case LITER, TABLESPOON -> MILLILITER;
+            default -> this; // GRAM, MILLILITER, PIECE stay as they are
+        };
+    }
+
+    public double toBaseQuantity(double quantity) {
+        return switch (this) {
+            case KILOGRAM, LITER -> quantity * 1000;
+            case TABLESPOON -> quantity * 15; // Approximation: 1 tbsp = 15 ml
+            default -> quantity;
+        };
+    }
 }

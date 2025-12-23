@@ -29,42 +29,44 @@ public class GroceryListGenerator implements PropertyChangeListener {
     }
 
     private void regenerate() {
-        // 1. Snapshot 'bought' status
+        // Keep bought status of last grocerylist
         Map<String, Boolean> boughtStatus = new HashMap<>();
         for (GroceryItem item : items) {
-            // Use .name() for the key so it matches Unit.valueOf later
             String key = item.getName() + "|" + item.getUnit().name();
             boughtStatus.put(key, item.isBought());
         }
 
         Map<String, Double> totals = new HashMap<>();
 
-        // 2. Add Ingredients from Plan
+        // Add Ingredients from Plan
         for (DayPlan day : plan.getDayPlans()) {
             for (PlannedMeal plannedMeal : day.getPlannedMeals()) {
                 if (plannedMeal.getMealComponent() != null) {
                     for (Ingredient ingredient : plannedMeal.getMealComponent().getIngredients()) {
-                        // FIX: Use .name() instead of .toString()
-                        // This produces "Milk|LITER" instead of "Milk|l"
-                        String key = ingredient.getName() + "|" + ingredient.getUnit().name();
-                        totals.merge(key, ingredient.getQuantity(), Double::sum);
+
+                        // Get Base unit
+                        Unit unit = ingredient.getUnit();
+                        Unit baseUnit = unit.getBaseUnit();
+                        double baseQty = unit.toBaseQuantity(ingredient.getQuantity());
+
+                        String key = ingredient.getName() + "|" + baseUnit.name();
+                        totals.merge(key, baseQty, Double::sum);
                     }
                 }
             }
         }
 
-        // 3. Add Manual Items
+        // Add manually added Items back
         manualItems.forEach((key, qty) ->
                 totals.merge(key, qty, Double::sum)
         );
 
-        // 4. Rebuild List
+        // Rebuild List
         items.clear();
         totals.forEach((key, qty) -> {
             try {
                 String[] parts = key.split("\\|");
                 String name = parts[0];
-                // FIX: This now works because parts[1] is "LITER", not "l"
                 Unit unit = Unit.valueOf(parts[1]);
 
                 GroceryItem newItem = new GroceryItem(name, qty, unit);
@@ -86,9 +88,12 @@ public class GroceryListGenerator implements PropertyChangeListener {
     }
 
     public void addManualItem(String name, double quantity, Unit unit) {
-        // FIX: Ensure manual items also use the "Name|UnitName" key format
-        String key = name + "|" + unit.name();
-        manualItems.merge(key, quantity, Double::sum);
+        // Ensure manual items also use the "Name|UnitName" key format
+        Unit baseUnit = unit.getBaseUnit();
+        double baseQty = unit.toBaseQuantity(quantity);
+
+        String key = name + "|" + baseUnit.name();
+        manualItems.merge(key, baseQty, Double::sum);
         regenerate();
     }
 }
