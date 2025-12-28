@@ -11,9 +11,11 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.converter.DoubleStringConverter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 public class RecipeFxView extends VBox implements RecipeView{
     private final ListView<String> recipeListView = new ListView<>();
@@ -44,11 +46,39 @@ public class RecipeFxView extends VBox implements RecipeView{
 
         ingredientNameField.setPromptText("Ingredient Name");
         ingredientQuantityField.setPromptText("Quantity");
+
+        //allow digits only in quantity field
+        UnaryOperator<TextFormatter.Change> filter = change -> {
+            String newText = change.getControlNewText();
+
+            // Allow empty field so that user can delete
+            if (newText.isEmpty()) {
+                return change;
+            }
+
+            // Allow only numbers with optional decimal point
+            if (newText.matches("\\d*(\\.\\d*)?")) {
+                return change;
+            }
+
+            // Reject change
+            return null;
+        };
+
+        ingredientQuantityField.setTextFormatter(
+                new TextFormatter<>(new DoubleStringConverter(), null, filter)
+        );
         unitComboBox.setPromptText("Unit");
         // Default to the first unit
         unitComboBox.getSelectionModel().selectFirst();
 
         Button addIngredientBtn = new Button("Add Ingredient");
+        //extra validation
+        addIngredientBtn.disableProperty().bind(
+                ingredientNameField.textProperty().isEmpty()
+                        .or(ingredientQuantityField.textProperty().isEmpty())
+                        .or(unitComboBox.valueProperty().isNull())
+        );
         addIngredientBtn.setOnAction(e -> {
             String inName = ingredientNameField.getText();
             String inQty = ingredientQuantityField.getText();
@@ -96,13 +126,22 @@ public class RecipeFxView extends VBox implements RecipeView{
 
         Button saveRecipeBtn = new Button("Save Recipe");
         saveRecipeBtn.setOnAction(e -> {
-            if (controller != null) {
-                controller.addRecipe(nameField.getText(), descriptionField.getText());
-                nameField.clear();
-                descriptionField.clear();
-                ingredients.clear();
-                ingredientItems.clear();
+            String name = nameField.getText();
+            String description = descriptionField.getText();
+
+            if (name == null || name.isBlank()
+                    || description == null || description.isBlank()
+                    || ingredientItems.isEmpty()) {
+                showError("Recipe must have a name, description, and at least one ingredient.");
+                return; // do NOT clear fields
             }
+
+            // Only call controller and clear fields if valid
+            controller.addRecipe(name, description);
+            nameField.clear();
+            descriptionField.clear();
+            ingredients.clear();
+            ingredientItems.clear();
         });
 
         VBox formBox = new VBox(5, formLabel, nameField, descriptionField, ingredientBox, ingredientListView, saveRecipeBtn, removeRecipeBtn);
