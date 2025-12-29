@@ -3,6 +3,7 @@ package be.uantwerpen.sd.project.view;
 import be.uantwerpen.sd.project.model.domain.enums.Unit;
 import be.uantwerpen.sd.project.model.domain.GroceryItem;
 import be.uantwerpen.sd.project.model.domain.GroceryListGenerator;
+import javafx.beans.property.adapter.JavaBeanBooleanPropertyBuilder;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -10,6 +11,7 @@ import javafx.scene.control.cell.CheckBoxListCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
 
 public class GroceryFxView extends VBox {
     private final GroceryListGenerator generator;
@@ -27,17 +29,37 @@ public class GroceryFxView extends VBox {
         listView.setItems(generator.getItems());
 
         // Custom Cell Factory to show Checkbox + Text
-        listView.setCellFactory(param -> new CheckBoxListCell<>(GroceryItem::boughtProperty) {
-            @Override
-            public void updateItem(GroceryItem item, boolean empty) {
-                super.updateItem(item, empty);
-                if (item != null && !empty) {
-                    setText(String.format("%s (%.2f %s)", item.getName(), item.getQuantity(), item.getUnit()));
-                } else {
-                    setText(null);
+        listView.setCellFactory(CheckBoxListCell.forListView(
+                // 1. Callback to retrieve the boolean property for the checkbox
+                item -> {
+                    try {
+                        // Creates a JavaFX property wrapper around the POJO's "bought" field
+                        // This listens to PropertyChangeEvents from the model automatically
+                        return JavaBeanBooleanPropertyBuilder.create()
+                                .bean(item)
+                                .name("bought")
+                                .build();
+                    } catch (NoSuchMethodException e) {
+                        // Should not happen if getBought/isBought and setBought exist
+                        e.printStackTrace();
+                        return null;
+                    }
+                },
+                // 2. StringConverter to determine how the item text looks
+                new StringConverter<GroceryItem>() {
+                    @Override
+                    public String toString(GroceryItem item) {
+                        return String.format("%s (%.2f %s)", item.getName(), item.getQuantity(), item.getUnit());
+                    }
+
+                    @Override
+                    public GroceryItem fromString(String string) {
+                        // Not needed for this read-only label
+                        return null;
+                    }
                 }
-            }
-        });
+        ));
+
         VBox.setVgrow(listView, Priority.ALWAYS);
 
         // Manual Add Section
