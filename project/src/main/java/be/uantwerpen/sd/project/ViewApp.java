@@ -4,6 +4,7 @@ import be.uantwerpen.sd.project.controller.RecipeController;
 import be.uantwerpen.sd.project.controller.WeeklyMealPlanController;
 import be.uantwerpen.sd.project.model.domain.GroceryListGenerator;
 import be.uantwerpen.sd.project.model.domain.WeeklyMealPlan;
+import be.uantwerpen.sd.project.repository.RecipeRepository;
 import be.uantwerpen.sd.project.view.GroceryFxView;
 import be.uantwerpen.sd.project.view.RecipeFxView;
 import be.uantwerpen.sd.project.view.WeeklyMealPlanFxView;
@@ -24,9 +25,13 @@ public class ViewApp extends Application {
         WeeklyMealPlan mealPlan = new WeeklyMealPlan();
         GroceryListGenerator groceryGen = new GroceryListGenerator(mealPlan);
 
+        // [FIX] Wire up RecipeRepository to WeeklyMealPlan
+        // This ensures that when a recipe is deleted/edited, the MealPlan updates itself
+        RecipeRepository.getInstance().addPropertyChangeListener(mealPlan);
+
         // 2. Create Views
         RecipeFxView recipeView = new RecipeFxView();
-        WeeklyMealPlanFxView planView = new WeeklyMealPlanFxView(mealPlan); // Observe model
+        WeeklyMealPlanFxView planView = new WeeklyMealPlanFxView(mealPlan);
         GroceryFxView groceryView = new GroceryFxView(groceryGen);
 
         // 3. Setup Controllers
@@ -43,10 +48,8 @@ public class ViewApp extends Application {
         Tab recipeTab = new Tab("Manage Recipes", recipeView);
         recipeTab.setClosable(false);
 
-        // Add the new tab
         Tab planTab = new Tab("Weekly Plan", planView);
         planTab.setClosable(false);
-        // Auto-refresh recipe list when clicking this tab
         planTab.setOnSelectionChanged(e -> {
             if (planTab.isSelected()) planView.refreshRecipeList();
         });

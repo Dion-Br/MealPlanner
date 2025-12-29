@@ -11,8 +11,6 @@ import be.uantwerpen.sd.project.model.domain.enums.Unit;
 public class GroceryListGenerator implements PropertyChangeListener {
     private WeeklyMealPlan plan;
     private ObservableList<GroceryItem> items = FXCollections.observableArrayList();
-
-    // Key format: "Name|UnitName" (e.g. "Pasta|GRAM")
     private final Map<String, Double> manualItems = new HashMap<>();
 
     public GroceryListGenerator(WeeklyMealPlan plan) {
@@ -23,13 +21,16 @@ public class GroceryListGenerator implements PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
+        // We only need to listen to the Meal Plan.
+        // If a Recipe changes, WeeklyMealPlan catches it and fires "mealPlanUpdated",
+        // triggering this method automatically.
         if ("mealPlanUpdated".equals(evt.getPropertyName())) {
             regenerate();
         }
     }
 
     private void regenerate() {
-        // Keep bought status of last grocerylist
+        // Keep bought status
         Map<String, Boolean> boughtStatus = new HashMap<>();
         for (GroceryItem item : items) {
             String key = item.getName() + "|" + item.getUnit().name();
@@ -42,9 +43,8 @@ public class GroceryListGenerator implements PropertyChangeListener {
         for (DayPlan day : plan.getDayPlans()) {
             for (PlannedMeal plannedMeal : day.getPlannedMeals()) {
                 if (plannedMeal.getMealComponent() != null) {
+                    // This will fetch the UPDATED ingredients list because the Recipe object is modified in memory
                     for (Ingredient ingredient : plannedMeal.getMealComponent().getIngredients()) {
-
-                        // Get Base unit
                         Unit unit = ingredient.getUnit();
                         Unit baseUnit = unit.getBaseUnit();
                         double baseQty = unit.toBaseQuantity(ingredient.getQuantity());
@@ -56,7 +56,7 @@ public class GroceryListGenerator implements PropertyChangeListener {
             }
         }
 
-        // Add manually added Items back
+        // Add Manual Items
         manualItems.forEach((key, qty) ->
                 totals.merge(key, qty, Double::sum)
         );
@@ -71,13 +71,11 @@ public class GroceryListGenerator implements PropertyChangeListener {
 
                 GroceryItem newItem = new GroceryItem(name, qty, unit);
 
-                // Restore checkbox status
                 if (boughtStatus.getOrDefault(key, false)) {
                     newItem.setBought(true);
                 }
                 items.add(newItem);
             } catch (Exception e) {
-                System.err.println("Error reconstructing item from key: " + key);
                 e.printStackTrace();
             }
         });
@@ -88,10 +86,8 @@ public class GroceryListGenerator implements PropertyChangeListener {
     }
 
     public void addManualItem(String name, double quantity, Unit unit) {
-        // Ensure manual items also use the "Name|UnitName" key format
         Unit baseUnit = unit.getBaseUnit();
         double baseQty = unit.toBaseQuantity(quantity);
-
         String key = name + "|" + baseUnit.name();
         manualItems.merge(key, baseQty, Double::sum);
         regenerate();

@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-public class RecipeFxView extends VBox implements RecipeView{
+public class RecipeFxView extends VBox implements RecipeView {
     private final ListView<String> recipeListView = new ListView<>();
     private List<Recipe> currentRecipes;
     private final TextArea recipeDetailsArea = new TextArea();
@@ -29,9 +29,11 @@ public class RecipeFxView extends VBox implements RecipeView{
     private final TextField ingredientQuantityField = new TextField();
     private final ListView<String> ingredientListView = new ListView<>();
     private final ObservableList<String> ingredientItems = FXCollections.observableArrayList();
-    private final List<MealComponent> ingredients = new ArrayList<>();
+    // private final List<MealComponent> ingredients = new ArrayList<>(); // Unused, safe to remove
     private final ComboBox<Unit> unitComboBox = new ComboBox<>(FXCollections.observableArrayList(Unit.values()));
 
+    // Editing state
+    private Recipe recipeToEdit = null;
     private RecipeController controller;
 
     public RecipeFxView() {
@@ -47,21 +49,11 @@ public class RecipeFxView extends VBox implements RecipeView{
         ingredientNameField.setPromptText("Ingredient Name");
         ingredientQuantityField.setPromptText("Quantity");
 
-        //allow digits only in quantity field
+        // Allow digits only in quantity field
         UnaryOperator<TextFormatter.Change> filter = change -> {
             String newText = change.getControlNewText();
-
-            // Allow empty field so that user can delete
-            if (newText.isEmpty()) {
-                return change;
-            }
-
-            // Allow only numbers with optional decimal point
-            if (newText.matches("\\d*(\\.\\d*)?")) {
-                return change;
-            }
-
-            // Reject change
+            if (newText.isEmpty()) return change;
+            if (newText.matches("\\d*(\\.\\d*)?")) return change;
             return null;
         };
 
@@ -69,11 +61,9 @@ public class RecipeFxView extends VBox implements RecipeView{
                 new TextFormatter<>(new DoubleStringConverter(), null, filter)
         );
         unitComboBox.setPromptText("Unit");
-        // Default to the first unit
         unitComboBox.getSelectionModel().selectFirst();
 
         Button addIngredientBtn = new Button("Add Ingredient");
-        //extra validation
         addIngredientBtn.disableProperty().bind(
                 ingredientNameField.textProperty().isEmpty()
                         .or(ingredientQuantityField.textProperty().isEmpty())
@@ -87,7 +77,7 @@ public class RecipeFxView extends VBox implements RecipeView{
                 try {
                     double qty = Double.parseDouble(inQty);
                     controller.addIngredient(inName, qty, selectedUnit);
-                    ingredientItems.add(inName + " (" + qty + " " + selectedUnit + ")");
+                    ingredientItems.add(formatIngredientString(inName, qty, selectedUnit));
                     ingredientNameField.clear();
                     ingredientQuantityField.clear();
                     unitComboBox.getSelectionModel().selectFirst();
@@ -99,15 +89,8 @@ public class RecipeFxView extends VBox implements RecipeView{
             }
         });
 
-        Button removeRecipeBtn = new Button("Remove Recipe");
-        removeRecipeBtn.setOnAction(e -> {
-            int index = recipeListView.getSelectionModel().getSelectedIndex();
-            if (index >= 0) {
-                Recipe selectedRecipe = currentRecipes.get(index);
-                controller.removeRecipe(selectedRecipe);
-                recipeDetailsArea.clear();
-            }
-        });
+        // [FIX 1] Removed the duplicate removeRecipeBtn definition here.
+        // We only keep the "Remove Ingredient" button for the form.
 
         Button removeIngredientBtn = new Button("Remove Ingredient");
         removeIngredientBtn.setOnAction(e -> {
@@ -125,37 +108,64 @@ public class RecipeFxView extends VBox implements RecipeView{
         HBox ingredientBox = new HBox(5, ingredientNameField, ingredientQuantityField, unitComboBox, addIngredientBtn, removeIngredientBtn);
 
         Button saveRecipeBtn = new Button("Save Recipe");
+        Button cancelEditBtn = new Button("Cancel");
+        cancelEditBtn.setVisible(false);
+
         saveRecipeBtn.setOnAction(e -> {
             String name = nameField.getText();
             String description = descriptionField.getText();
 
-            if (name == null || name.isBlank()
-                    || description == null || description.isBlank()
-                    || ingredientItems.isEmpty()) {
-                showError("Recipe must have a name, description, and at least one ingredient.");
-                return; // do NOT clear fields
+            if (recipeToEdit == null) {
+                controller.addRecipe(name, description);
+            } else {
+                controller.updateRecipe(recipeToEdit, name, description);
             }
-
-            // Only call controller and clear fields if valid
-            controller.addRecipe(name, description);
-            nameField.clear();
-            descriptionField.clear();
-            ingredients.clear();
-            ingredientItems.clear();
+            resetForm(saveRecipeBtn, cancelEditBtn);
         });
 
-        VBox formBox = new VBox(5, formLabel, nameField, descriptionField, ingredientBox, ingredientListView, saveRecipeBtn, removeRecipeBtn);
+        cancelEditBtn.setOnAction(e -> resetForm(saveRecipeBtn, cancelEditBtn));
+
+        // [FIX 3] Ensure the actionBox (Save + Cancel) is created
+        HBox actionBox = new HBox(10, saveRecipeBtn, cancelEditBtn);
+
+        // [FIX 3 & 1] Add 'actionBox' to formBox instead of adding 'saveRecipeBtn' alone.
+        // Also removed 'removeRecipeBtn' from here.
+        VBox formBox = new VBox(5, formLabel, nameField, descriptionField, ingredientBox, ingredientListView, actionBox);
+        formBox.setStyle("-fx-border-color: lightgray; -fx-padding: 10; -fx-border-radius: 5;");
 
         // --- Recipe display ---
-        Label recipeLabel = new Label("Recipes");
+        Label recipeLabel = new Label("Available Recipes");
         recipeListView.setPrefHeight(200);
 
         recipeDetailsArea.setEditable(false);
-        recipeDetailsArea.setPrefHeight(150);
+        recipeDetailsArea.setPrefHeight(100);
 
-        getChildren().addAll(formBox, recipeLabel, recipeListView, recipeDetailsArea);
+        Button editRecipeBtn = new Button("Edit Selected");
 
-        // Selection listener
+        // [FIX 1] This is the correct place for removeRecipeBtn (next to the list)
+        Button removeRecipeBtn = new Button("Remove Selected");
+
+        editRecipeBtn.setOnAction(e -> {
+            Recipe selected = getSelectedRecipe();
+            if (selected != null) {
+                enableEditMode(selected, saveRecipeBtn, cancelEditBtn);
+            }
+        });
+
+        removeRecipeBtn.setOnAction(e -> {
+            Recipe selected = getSelectedRecipe();
+            if (selected != null) {
+                controller.removeRecipe(selected);
+                recipeDetailsArea.clear();
+                resetForm(saveRecipeBtn, cancelEditBtn);
+            }
+        });
+
+        HBox listBox = new HBox(10, editRecipeBtn, removeRecipeBtn);
+
+        // [FIX 4] Changed 'listLabel' (undefined) to 'recipeLabel'
+        getChildren().addAll(formBox, recipeLabel, recipeListView, listBox, recipeDetailsArea);
+
         recipeListView.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> {
             if (currentRecipes != null && newVal.intValue() >= 0) {
                 showDetails(currentRecipes.get(newVal.intValue()));
@@ -174,16 +184,13 @@ public class RecipeFxView extends VBox implements RecipeView{
                 recipes.stream().map(Recipe::getName).toList()
         );
         recipeListView.setItems(items);
-        if (!recipes.isEmpty()) {
-            recipeListView.getSelectionModel().selectFirst();
-        }
     }
 
     @Override
     public void showDetails(Recipe recipe) {
         String ingredients = String.join(", ",
                 recipe.getIngredients().stream()
-                        .map(i -> i.getName() + " (" + i.getQuantity() + ")")
+                        .map(i -> i.getName() + " (" + i.getQuantity() + " " + i.getUnit() + ")")
                         .toList()
         );
         recipeDetailsArea.setText(recipe.getName() + ": " + recipe.getDescription()
@@ -197,5 +204,54 @@ public class RecipeFxView extends VBox implements RecipeView{
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    // --- Helper Methods ---
+    private Recipe getSelectedRecipe() {
+        int index = recipeListView.getSelectionModel().getSelectedIndex();
+        if (index >= 0 && currentRecipes != null) {
+            return currentRecipes.get(index);
+        }
+        return null;
+    }
+
+    private void enableEditMode(Recipe recipe, Button saveBtn, Button cancelBtn) {
+        this.recipeToEdit = recipe;
+
+        nameField.setText(recipe.getName());
+        descriptionField.setText(recipe.getDescription());
+
+        controller.prepareEdit(recipe);
+
+        ingredientItems.clear();
+        for (MealComponent mc : controller.getCurrentIngredients()) {
+            if (mc instanceof Ingredient i) {
+                // [FIX 5] This method was missing
+                ingredientItems.add(formatIngredientString(i.getName(), i.getQuantity(), i.getUnit()));
+            } else {
+                ingredientItems.add(mc.getName());
+            }
+        }
+
+        saveBtn.setText("Update Recipe");
+        cancelBtn.setVisible(true);
+    }
+
+    private void resetForm(Button saveBtn, Button cancelBtn) {
+        this.recipeToEdit = null;
+        nameField.clear();
+        descriptionField.clear();
+        ingredientNameField.clear();
+        ingredientQuantityField.clear();
+        ingredientItems.clear();
+        controller.clearIngredients();
+
+        saveBtn.setText("Save Recipe");
+        cancelBtn.setVisible(false);
+    }
+
+    // [FIX 5] Added missing helper method
+    private String formatIngredientString(String name, double qty, Unit unit) {
+        return name + " (" + qty + " " + unit + ")";
     }
 }

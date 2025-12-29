@@ -52,6 +52,33 @@ public class RecipeController {
         getRecipes();
     }
 
+    public void clearIngredients() {
+        currentIngredients.clear();
+    }
+
+    public void prepareEdit(Recipe recipe) {
+        currentIngredients.clear();
+        currentIngredients.addAll(recipe.getComponents());
+    }
+
+    private boolean isInvalidRecipe(String name, String description) {
+        if (name == null || name.isBlank()
+                || description == null || description.isBlank()
+                || currentIngredients.isEmpty()) {
+            view.showError("Recipe must have a name, description, and at least one ingredient.");
+            return true;
+        }
+        return false;
+    }
+
+    public void updateRecipe(Recipe originalRecipe, String name, String description) {
+        if (isInvalidRecipe(name, description)) return;
+
+        recipeService.updateRecipe(originalRecipe, name, description, currentIngredients);
+        currentIngredients.clear();
+        getRecipes();
+    }
+
     public void getRecipes() {
         view.showRecipes(recipeService.getAllRecipes());
     }

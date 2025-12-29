@@ -5,6 +5,7 @@ import be.uantwerpen.sd.project.model.domain.MealComponent;
 import be.uantwerpen.sd.project.model.domain.Recipe;
 import be.uantwerpen.sd.project.repository.RecipeRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class RecipeService {
@@ -22,6 +23,14 @@ public class RecipeService {
         Recipe recipe = builder.build();
         recipeRepository.addRecipe(recipe);
         return recipe;
+    }
+
+    // Method for editing the recipe
+    public void updateRecipe(Recipe recipe, String name, String description, List<MealComponent> components) {
+        recipe.setName(name);
+        recipe.setDescription(description);
+        recipe.setComponents(new ArrayList<>(components));
+        recipeRepository.notifyUpdate();
     }
 
     public void removeRecipe(Recipe recipe) {
