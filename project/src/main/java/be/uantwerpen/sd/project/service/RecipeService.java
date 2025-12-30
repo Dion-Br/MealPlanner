@@ -9,23 +9,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RecipeService {
-    private final RecipeRepository recipeRepository = RecipeRepository.getInstance();
+
+    private final RecipeRepository recipeRepository;
+
+    public RecipeService(RecipeRepository recipeRepository) {
+        this.recipeRepository = recipeRepository;
+    }
 
     public Recipe buildRecipe(String name, String description, List<MealComponent> components) {
-        RecipeBuilder builder = new RecipeBuilder()
-                .setName(name).
-                setDescription(description);
+        Recipe recipe = new RecipeBuilder()
+                .setName(name)
+                .setDescription(description)
+                .addComponents(components)
+                .build();
 
-        for (MealComponent c : components) {
-            builder.addComponent(c);
-        }
-
-        Recipe recipe = builder.build();
         recipeRepository.addRecipe(recipe);
         return recipe;
     }
 
-    // Method for editing the recipe
     public void updateRecipe(Recipe recipe, String name, String description, List<MealComponent> components) {
         recipe.setName(name);
         recipe.setDescription(description);

@@ -11,24 +11,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RecipeController {
-    private final RecipeService recipeService = new RecipeService();
-    private RecipeView view;
-    private final List<MealComponent> currentIngredients = new ArrayList<>();
 
-    public RecipeController(RecipeView view) {
+    private final RecipeService recipeService;
+    private final RecipeView view;
+    private final List<MealComponent> currentIngredients;
+
+    public RecipeController(RecipeView view, RecipeService recipeService) {
         this.view = view;
+        this.recipeService = recipeService;
+        this.currentIngredients = new ArrayList<>();
     }
 
     public void addIngredient(String name, double quantity, Unit unit, List<String> tags) {
-        if (name == null || name.isBlank() || quantity <= 0 || unit == null) {
+        if (!isValidIngredientInput(name, quantity, unit)) {
             view.showError("Invalid input. Name, quantity and unit are required.");
             return;
         }
-        currentIngredients.add(new Ingredient(name, quantity, unit, tags));
+        List<String> ingredientTags = tags != null ? tags : new ArrayList<>();
+        currentIngredients.add(new Ingredient(name, quantity, unit, ingredientTags));
     }
 
     public void removeIngredient(int index) {
-        if (index >= 0 && index < currentIngredients.size()) {
+        if (isValidIndex(index)) {
             currentIngredients.remove(index);
         } else {
             view.showError("Invalid ingredient selection.");
@@ -36,20 +40,18 @@ public class RecipeController {
     }
 
     public void addRecipe(String name, String description) {
-        if (name == null || name.isBlank()
-                || description == null || description.isBlank()
-                || currentIngredients.isEmpty()) {
+        if (!isValidRecipeInput(name, description)) {
             view.showError("Recipe must have a name, description, and at least one ingredient.");
             return;
         }
         recipeService.buildRecipe(name, description, new ArrayList<>(currentIngredients));
         currentIngredients.clear();
-        getRecipes();
+        refreshView();
     }
 
     public void removeRecipe(Recipe recipe) {
         recipeService.removeRecipe(recipe);
-        getRecipes();
+        refreshView();
     }
 
     public void clearIngredients() {
@@ -61,30 +63,35 @@ public class RecipeController {
         currentIngredients.addAll(recipe.getComponents());
     }
 
-    private boolean isInvalidRecipe(String name, String description) {
-        if (name == null || name.isBlank()
-                || description == null || description.isBlank()
-                || currentIngredients.isEmpty()) {
-            view.showError("Recipe must have a name, description, and at least one ingredient.");
-            return true;
-        }
-        return false;
-    }
-
     public void updateRecipe(Recipe originalRecipe, String name, String description) {
-        if (isInvalidRecipe(name, description)) return;
-
+        if (!isValidRecipeInput(name, description)) {
+            view.showError("Recipe must have a name, description, and at least one ingredient.");
+            return;
+        }
         recipeService.updateRecipe(originalRecipe, name, description, currentIngredients);
         currentIngredients.clear();
-        getRecipes();
+        refreshView();
     }
 
-    public void getRecipes() {
+    public void refreshView() {
         view.showRecipes(recipeService.getAllRecipes());
     }
 
-    // Expose current ingredient list for display in view
     public List<MealComponent> getCurrentIngredients() {
         return new ArrayList<>(currentIngredients);
+    }
+
+    private boolean isValidIngredientInput(String name, double quantity, Unit unit) {
+        return name != null && !name.isBlank() && quantity > 0 && unit != null;
+    }
+
+    private boolean isValidRecipeInput(String name, String description) {
+        return name != null && !name.isBlank()
+                && description != null && !description.isBlank()
+                && !currentIngredients.isEmpty();
+    }
+
+    private boolean isValidIndex(int index) {
+        return index >= 0 && index < currentIngredients.size();
     }
 }

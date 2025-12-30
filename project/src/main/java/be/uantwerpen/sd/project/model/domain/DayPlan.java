@@ -1,34 +1,34 @@
 package be.uantwerpen.sd.project.model.domain;
 
 import be.uantwerpen.sd.project.model.domain.enums.DaysOfTheWeek;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DayPlan {
+
     private DaysOfTheWeek day;
-    private List<PlannedMeal> plannedMeals = new ArrayList<>();
+    private final List<PlannedMeal> plannedMeals;
     private WeeklyMealPlan parent;
 
     public DayPlan(DaysOfTheWeek day) {
         this.day = day;
+        this.plannedMeals = new ArrayList<>();
     }
 
-    public void addPlannedMeal(PlannedMeal newMeal){
-        this.plannedMeals.add(newMeal);
-
-        // bubble event to WeeklyMealPlan
+    public void addPlannedMeal(PlannedMeal newMeal) {
+        plannedMeals.add(newMeal);
         newMeal.setParent(parent);
-
-        if (parent != null) parent.notifyObservers();
+        notifyParent();
     }
 
     public void removePlannedMeal(PlannedMeal mealToRemove) {
-        if (this.plannedMeals.remove(mealToRemove)) {
-            if (parent != null) parent.notifyObservers();
+        if (plannedMeals.remove(mealToRemove)) {
+            notifyParent();
         }
     }
 
-    // Eventueel als we een verschuif functie in de agenda willen gebruiken
-    public void changeDayOfTheWeek(DaysOfTheWeek newDay){
+    public void changeDayOfTheWeek(DaysOfTheWeek newDay) {
         this.day = newDay;
     }
 
@@ -45,7 +45,8 @@ public class DayPlan {
     }
 
     public void setPlannedMeals(List<PlannedMeal> plannedMeals) {
-        this.plannedMeals = plannedMeals;
+        this.plannedMeals.clear();
+        this.plannedMeals.addAll(plannedMeals);
     }
 
     public WeeklyMealPlan getParent() {
@@ -54,5 +55,11 @@ public class DayPlan {
 
     public void setParent(WeeklyMealPlan parent) {
         this.parent = parent;
+    }
+
+    private void notifyParent() {
+        if (parent != null) {
+            parent.notifyObservers();
+        }
     }
 }

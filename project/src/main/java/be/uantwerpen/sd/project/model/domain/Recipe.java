@@ -1,14 +1,17 @@
 package be.uantwerpen.sd.project.model.domain;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Recipe extends MealComponent {
+
     private String description;
-    private List<MealComponent> components = new ArrayList<>(); //either sub-recipes or ingredients
+    private final List<MealComponent> components;
 
     public Recipe(String name, String description) {
         super(name);
         this.description = description;
+        this.components = new ArrayList<>();
     }
 
     public List<String> calculateTags() {
@@ -17,14 +20,10 @@ public class Recipe extends MealComponent {
             return new ArrayList<>();
         }
 
-        // Start with the tags of the first ingredient
         List<String> commonTags = new ArrayList<>(allIngredients.get(0).getTags());
-
-        // Check for matches is all other ingredients
         for (Ingredient ingredient : allIngredients) {
             commonTags.retainAll(ingredient.getTags());
         }
-
         return commonTags;
     }
 
@@ -41,10 +40,15 @@ public class Recipe extends MealComponent {
     @Override
     public List<Ingredient> getIngredients() {
         List<Ingredient> ingredients = new ArrayList<>();
-        for (MealComponent component : components){
+        for (MealComponent component : components) {
             ingredients.addAll(component.getIngredients());
         }
         return ingredients;
+    }
+
+    @Override
+    public boolean isComposite() {
+        return true;
     }
 
     public String getDescription() {
@@ -56,20 +60,17 @@ public class Recipe extends MealComponent {
     }
 
     public List<MealComponent> getComponents() {
-        return components;
+        return new ArrayList<>(components);
     }
 
     public void setComponents(List<MealComponent> components) {
-        this.components = components;
+        this.components.clear();
+        this.components.addAll(components);
     }
 
     @Override
     public String toString() {
-        return "Recipe{" +
-                "name='" + getName() + '\'' +
-                ", description='" + description + '\'' +
-                ", tags=" + calculateTags() + '\'' +
-                ", components=" + components +
-                "}";
+        return String.format("Recipe{name='%s', description='%s', tags=%s, components=%s}",
+                getName(), description, calculateTags(), components);
     }
 }

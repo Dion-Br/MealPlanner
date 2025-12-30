@@ -3,11 +3,11 @@ package be.uantwerpen.sd.project.model.domain;
 import be.uantwerpen.sd.project.model.domain.enums.Unit;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class Ingredient extends MealComponent{
+public class Ingredient extends MealComponent {
+
     private double quantity;
     private Unit unit;
     private List<String> tags;
@@ -31,9 +31,13 @@ public class Ingredient extends MealComponent{
         this.quantity = quantity;
     }
 
-    public Unit getUnit() { return unit; }
+    public Unit getUnit() {
+        return unit;
+    }
 
-    public void setUnit(Unit unit) { this.unit = unit; }
+    public void setUnit(Unit unit) {
+        this.unit = unit;
+    }
 
     public List<String> getTags() {
         return Collections.unmodifiableList(tags);
@@ -45,16 +49,17 @@ public class Ingredient extends MealComponent{
 
     @Override
     public List<Ingredient> getIngredients() {
-        return Collections.singletonList(this); //empty list with just this ingr
+        return Collections.singletonList(this);
+    }
+
+    @Override
+    public boolean isComposite() {
+        return false;
     }
 
     @Override
     public String toString() {
-        return "Ingredient{" +
-                ", quantity=" + getQuantity() +
-                ", unit='" + getUnit() + '\'' +
-                ", name='" + getName() + '\'' +
-                ", tags=" + getTags() + '\'' +
-                "} " + super.toString();
+        return String.format("Ingredient{name='%s', quantity=%.2f, unit='%s', tags=%s}",
+                getName(), quantity, unit, tags);
     }
 }

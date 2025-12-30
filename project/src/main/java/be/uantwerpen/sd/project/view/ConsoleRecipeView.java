@@ -4,17 +4,19 @@ import be.uantwerpen.sd.project.model.domain.MealComponent;
 import be.uantwerpen.sd.project.model.domain.Recipe;
 
 import java.util.List;
-//more for debugging purposes
-public class ConsoleRecipeView implements RecipeView{
+
+public class ConsoleRecipeView implements RecipeView {
+
     @Override
     public void showRecipes(List<Recipe> recipes) {
         if (recipes.isEmpty()) {
             System.out.println("No recipes found.");
-        } else {
-            System.out.println("Recipes:");
-            for (Recipe r : recipes) {
-                System.out.println("- " + r.getName());
-            }
+            return;
+        }
+
+        System.out.println("Recipes:");
+        for (Recipe recipe : recipes) {
+            System.out.println("- " + recipe.getName());
         }
     }
 
@@ -22,14 +24,13 @@ public class ConsoleRecipeView implements RecipeView{
     public void showDetails(Recipe recipe) {
         System.out.println("- " + recipe.getName() + ": " + recipe.getDescription());
         System.out.println("  Ingredients:");
-        for (MealComponent c : recipe.getIngredients()) {
-            System.out.println("    • " + c.getName());
+        for (MealComponent component : recipe.getIngredients()) {
+            System.out.println("    - " + component.getName());
         }
     }
 
-
     @Override
     public void showError(String message) {
-        System.err.println(message);
+        System.err.println("Error: " + message);
     }
 }

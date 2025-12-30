@@ -1,9 +1,9 @@
 package be.uantwerpen.sd.project.model.domain;
 
-import be.uantwerpen.sd.project.model.domain.enums.DaysOfTheWeek;
 import be.uantwerpen.sd.project.model.domain.enums.MealType;
 
 public class PlannedMeal {
+
     private MealType mealType;
     private MealComponent mealComponent;
     private WeeklyMealPlan parent;
@@ -13,24 +13,17 @@ public class PlannedMeal {
         this.mealComponent = mealComponent;
     }
 
-    //changing mealtype from Breakfast to Lunch for example
     public void changeMealType(MealType newMealType) {
         this.mealType = newMealType;
     }
 
-    //changing a complete meal by something else
-    //will probably not get used
     public void changeMealComponent(MealComponent newMealComponent) {
         this.mealComponent = newMealComponent;
     }
 
     public void setMealComponent(MealComponent newComponent) {
-        MealComponent old = this.mealComponent;
         this.mealComponent = newComponent;
-
-        if (parent != null) {
-            parent.notifyObservers();
-        }
+        notifyParent();
     }
 
     public MealType getMealType() {
@@ -51,5 +44,11 @@ public class PlannedMeal {
 
     public void setParent(WeeklyMealPlan parent) {
         this.parent = parent;
+    }
+
+    private void notifyParent() {
+        if (parent != null) {
+            parent.notifyObservers();
+        }
     }
 }

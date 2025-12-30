@@ -6,21 +6,19 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
 public class GroceryItem {
-    private String name;
-    private double quantity;
-    private Unit unit;
+
+    private final String name;
+    private final double quantity;
+    private final Unit unit;
     private boolean bought;
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    private final PropertyChangeSupport propertyChangeSupport;
 
     public GroceryItem(String name, double quantity, Unit unit) {
         this.name = name;
         this.quantity = quantity;
         this.unit = unit;
         this.bought = false;
-    }
-
-    public void addQuantity(double amount) {
-        this.quantity += amount;
+        this.propertyChangeSupport = new PropertyChangeSupport(this);
     }
 
     public String getName() {
@@ -42,19 +40,19 @@ public class GroceryItem {
     public void setBought(boolean bought) {
         boolean oldValue = this.bought;
         this.bought = bought;
-        pcs.firePropertyChange("bought", oldValue, this.bought);
+        propertyChangeSupport.firePropertyChange("bought", oldValue, this.bought);
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
-        pcs.addPropertyChangeListener(listener);
+        propertyChangeSupport.addPropertyChangeListener(listener);
     }
 
     public void removePropertyChangeListener(PropertyChangeListener listener) {
-        pcs.removePropertyChangeListener(listener);
+        propertyChangeSupport.removePropertyChangeListener(listener);
     }
 
     @Override
     public String toString() {
-        return name + " (" + quantity + " " + unit + ")";
+        return String.format("%s (%.2f %s)", name, quantity, unit);
     }
 }

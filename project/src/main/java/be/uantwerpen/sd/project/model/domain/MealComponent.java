@@ -3,24 +3,24 @@ package be.uantwerpen.sd.project.model.domain;
 import java.util.List;
 
 public abstract class MealComponent {
+
     protected String name;
 
-    public MealComponent(String name) {
+    protected MealComponent(String name) {
         this.name = name;
     }
 
-    //default throwing exception -> otherwise Ingredient will be able to add a mealc and its not supposed to be able to do that...
-    public void add(MealComponent c) {
-        throw new UnsupportedOperationException();
-    }
-
-    //idem
-    public void remove(MealComponent c){
-        throw new UnsupportedOperationException();
-    }
-
-    //get all leaf nodes
     public abstract List<Ingredient> getIngredients();
+
+    public abstract boolean isComposite();
+
+    public void add(MealComponent component) {
+        throw new UnsupportedOperationException("Cannot add to leaf component");
+    }
+
+    public void remove(MealComponent component) {
+        throw new UnsupportedOperationException("Cannot remove from leaf component");
+    }
 
     public String getName() {
         return name;

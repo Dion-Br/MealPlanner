@@ -9,28 +9,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WeeklyMealPlan implements PropertyChangeListener {
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-    private List<DayPlan> dayPlans;
+
+    private static final String MEAL_PLAN_UPDATED = "mealPlanUpdated";
+    private static final String RECIPES_CHANGED = "recipesChanged";
+
+    private final PropertyChangeSupport propertyChangeSupport;
+    private final List<DayPlan> dayPlans;
 
     public WeeklyMealPlan() {
-        dayPlans = new ArrayList<>();
-        for (DaysOfTheWeek day : DaysOfTheWeek.values()) {
-            DayPlan dp = new DayPlan(day);
-            dp.setParent(this);
-            dayPlans.add(dp);
-        }
+        this.propertyChangeSupport = new PropertyChangeSupport(this);
+        this.dayPlans = new ArrayList<>();
+        initializeDayPlans();
     }
 
     public void addListener(PropertyChangeListener listener) {
-        pcs.addPropertyChangeListener(listener);
+        propertyChangeSupport.addPropertyChangeListener(listener);
     }
 
     public void removeListener(PropertyChangeListener listener) {
-        pcs.removePropertyChangeListener(listener);
+        propertyChangeSupport.removePropertyChangeListener(listener);
     }
 
-    protected void notifyObservers() {
-        pcs.firePropertyChange("mealPlanUpdated", null, this);
+    public void notifyObservers() {
+        propertyChangeSupport.firePropertyChange(MEAL_PLAN_UPDATED, null, this);
     }
 
     public List<DayPlan> getDayPlans() {
@@ -38,44 +39,47 @@ public class WeeklyMealPlan implements PropertyChangeListener {
     }
 
     public void setDayPlans(List<DayPlan> dayPlans) {
-        this.dayPlans = dayPlans;
+        this.dayPlans.clear();
+        this.dayPlans.addAll(dayPlans);
     }
 
-    /**
-     * React to changes in the RecipeRepository.
-     * If a recipe is deleted, remove it from the plan.
-     * If a recipe is updated, notify observers so UI and GroceryList update.
-     */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if ("recipesChanged".equals(evt.getPropertyName())) {
-            // 1. Get the list of currently valid recipes
-            List<?> validRecipes = (List<?>) evt.getNewValue();
+        if (RECIPES_CHANGED.equals(evt.getPropertyName())) {
+            handleRecipesChanged(evt);
+        }
+    }
 
-            boolean planChanged = false;
+    private void initializeDayPlans() {
+        for (DaysOfTheWeek day : DaysOfTheWeek.values()) {
+            DayPlan dayPlan = new DayPlan(day);
+            dayPlan.setParent(this);
+            dayPlans.add(dayPlan);
+        }
+    }
 
-            // 2. Check every day for recipes that no longer exist
-            for (DayPlan day : dayPlans) {
-                List<PlannedMeal> toRemove = new ArrayList<>();
-                for (PlannedMeal pm : day.getPlannedMeals()) {
-                    // Check if the component is a Recipe and if it is missing from the valid list
-                    if (pm.getMealComponent() instanceof Recipe r) {
-                        if (!validRecipes.contains(r)) {
-                            toRemove.add(pm);
-                        }
-                    }
-                }
+    private void handleRecipesChanged(PropertyChangeEvent evt) {
+        List<?> validRecipes = (List<?>) evt.getNewValue();
+        removeInvalidMeals(validRecipes);
+        notifyObservers();
+    }
 
-                // Remove the dead meals
-                if (!toRemove.isEmpty()) {
-                    day.getPlannedMeals().removeAll(toRemove);
-                    planChanged = true;
+    private void removeInvalidMeals(List<?> validRecipes) {
+        for (DayPlan day : dayPlans) {
+            List<PlannedMeal> toRemove = findInvalidMeals(day, validRecipes);
+            day.getPlannedMeals().removeAll(toRemove);
+        }
+    }
+
+    private List<PlannedMeal> findInvalidMeals(DayPlan day, List<?> validRecipes) {
+        List<PlannedMeal> toRemove = new ArrayList<>();
+        for (PlannedMeal meal : day.getPlannedMeals()) {
+            if (meal.getMealComponent() instanceof Recipe recipe) {
+                if (!validRecipes.contains(recipe)) {
+                    toRemove.add(meal);
                 }
             }
-
-            // 3. Notify everyone (GroceryListGenerator, View) that the plan has changed (or data inside it updated)
-            // We notify even if planChanged is false, because the ingredients INSIDE a recipe might have changed.
-            notifyObservers();
         }
+        return toRemove;
     }
 }

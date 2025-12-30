@@ -9,11 +9,18 @@ import java.util.Collections;
 import java.util.List;
 
 public class RecipeRepository {
-    private static volatile RecipeRepository instance;
-    private final List<Recipe> recipes = new ArrayList<>();
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
-    private RecipeRepository() {}
+    private static final String RECIPES_CHANGED = "recipesChanged";
+
+    private static volatile RecipeRepository instance;
+
+    private final List<Recipe> recipes;
+    private final PropertyChangeSupport propertyChangeSupport;
+
+    private RecipeRepository() {
+        this.recipes = new ArrayList<>();
+        this.propertyChangeSupport = new PropertyChangeSupport(this);
+    }
 
     public static RecipeRepository getInstance() {
         if (instance == null) {
@@ -28,16 +35,16 @@ public class RecipeRepository {
 
     public void addRecipe(Recipe recipe) {
         recipes.add(recipe);
-        pcs.firePropertyChange("recipesChanged", null, recipes);
+        fireRecipesChanged();
     }
 
     public void removeRecipe(Recipe recipe) {
         recipes.remove(recipe);
-        pcs.firePropertyChange("recipesChanged", null, recipes);
+        fireRecipesChanged();
     }
 
     public void notifyUpdate() {
-        pcs.firePropertyChange("recipesChanged", null, recipes);
+        fireRecipesChanged();
     }
 
     public List<Recipe> findAll() {
@@ -45,10 +52,18 @@ public class RecipeRepository {
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
-        pcs.addPropertyChangeListener(listener);
+        propertyChangeSupport.addPropertyChangeListener(listener);
     }
 
     public void removePropertyChangeListener(PropertyChangeListener listener) {
-        pcs.removePropertyChangeListener(listener);
+        propertyChangeSupport.removePropertyChangeListener(listener);
+    }
+
+    private void fireRecipesChanged() {
+        propertyChangeSupport.firePropertyChange(RECIPES_CHANGED, null, recipes);
+    }
+
+    protected static void resetInstance() {
+        instance = null;
     }
 }

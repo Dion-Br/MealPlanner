@@ -1,6 +1,9 @@
 package be.uantwerpen.sd.project.controller;
 
-import be.uantwerpen.sd.project.model.domain.*;
+import be.uantwerpen.sd.project.model.domain.DayPlan;
+import be.uantwerpen.sd.project.model.domain.PlannedMeal;
+import be.uantwerpen.sd.project.model.domain.Recipe;
+import be.uantwerpen.sd.project.model.domain.WeeklyMealPlan;
 import be.uantwerpen.sd.project.model.domain.enums.DaysOfTheWeek;
 import be.uantwerpen.sd.project.model.domain.enums.MealType;
 import be.uantwerpen.sd.project.service.RecipeService;
@@ -10,14 +13,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class WeeklyMealPlanController {
+
     private final WeeklyMealPlan model;
     private final RecipeService recipeService;
     private WeeklyMealPlanFxView view;
 
-    public WeeklyMealPlanController(WeeklyMealPlan model) {
+    public WeeklyMealPlanController(WeeklyMealPlan model, RecipeService recipeService) {
         this.model = model;
-        // We use the existing service to get the recipes created in the other tab
-        this.recipeService = new RecipeService();
+        this.recipeService = recipeService;
     }
 
     public void setView(WeeklyMealPlanFxView view) {
@@ -35,7 +38,7 @@ public class WeeklyMealPlanController {
     public List<Recipe> getAvailableRecipes(String filterTag) {
         List<Recipe> allRecipes = recipeService.getAllRecipes();
 
-        if (filterTag == null || filterTag.isBlank() || filterTag.equals("All")) {
+        if (isEmptyFilter(filterTag)) {
             return allRecipes;
         }
 
@@ -45,21 +48,15 @@ public class WeeklyMealPlanController {
     }
 
     public void addMealToPlan(DaysOfTheWeek day, MealType type, Recipe recipe) {
-        if (day == null || type == null || recipe == null) {
-            // show error in view
+        if (!isValidMealInput(day, type, recipe)) {
             System.err.println("Invalid input for meal plan");
             return;
         }
 
-        // Find the correct DayPlan
-        for (DayPlan dayPlan : model.getDayPlans()) {
-            if (dayPlan.getDay() == day) {
-                // Create the planned meal
-                PlannedMeal meal = new PlannedMeal(type, recipe);
-                // Add it (this will trigger the observer in WeeklyMealPlan -> GroceryListGenerator)
-                dayPlan.addPlannedMeal(meal);
-                break;
-            }
+        DayPlan dayPlan = findDayPlan(day);
+        if (dayPlan != null) {
+            PlannedMeal meal = new PlannedMeal(type, recipe);
+            dayPlan.addPlannedMeal(meal);
         }
     }
 
@@ -67,5 +64,22 @@ public class WeeklyMealPlanController {
         if (meal != null && dayPlan != null) {
             dayPlan.removePlannedMeal(meal);
         }
+    }
+
+    private boolean isEmptyFilter(String filterTag) {
+        return filterTag == null || filterTag.isBlank() || filterTag.equals("All");
+    }
+
+    private boolean isValidMealInput(DaysOfTheWeek day, MealType type, Recipe recipe) {
+        return day != null && type != null && recipe != null;
+    }
+
+    private DayPlan findDayPlan(DaysOfTheWeek day) {
+        for (DayPlan dayPlan : model.getDayPlans()) {
+            if (dayPlan.getDay() == day) {
+                return dayPlan;
+            }
+        }
+        return null;
     }
 }
