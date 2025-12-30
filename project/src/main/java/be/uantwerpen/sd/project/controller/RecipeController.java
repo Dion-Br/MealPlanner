@@ -89,10 +89,6 @@ public class RecipeController {
         return new ArrayList<>(currentComponents);
     }
 
-    public List<Recipe> getAvailableRecipes() {
-        return recipeService.getAllRecipes();
-    }
-
     public List<Recipe> getAvailableRecipesExcluding(Recipe excludeRecipe) {
         List<Recipe> recipes = new ArrayList<>(recipeService.getAllRecipes());
         if (excludeRecipe != null) {

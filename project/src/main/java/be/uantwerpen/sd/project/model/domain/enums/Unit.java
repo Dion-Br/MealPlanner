@@ -31,8 +31,4 @@ public enum Unit {
     public double toBaseQuantity(double quantity) {
         return quantity * conversionFactor;
     }
-
-    public String getLabel() {
-        return label;
-    }
 }

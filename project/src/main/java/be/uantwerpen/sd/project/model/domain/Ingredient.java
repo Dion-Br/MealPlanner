@@ -27,34 +27,17 @@ public class Ingredient extends MealComponent {
         return quantity;
     }
 
-    public void setQuantity(double quantity) {
-        this.quantity = quantity;
-    }
-
     public Unit getUnit() {
         return unit;
-    }
-
-    public void setUnit(Unit unit) {
-        this.unit = unit;
     }
 
     public List<String> getTags() {
         return Collections.unmodifiableList(tags);
     }
 
-    public void setTags(List<String> tags) {
-        this.tags = new ArrayList<>(tags);
-    }
-
     @Override
     public List<Ingredient> getIngredients() {
         return Collections.singletonList(this);
-    }
-
-    @Override
-    public boolean isComposite() {
-        return false;
     }
 
     @Override

@@ -26,11 +26,6 @@ public class RecipeBuilder {
         return this;
     }
 
-    public RecipeBuilder addComponent(MealComponent component) {
-        this.components.add(component);
-        return this;
-    }
-
     public RecipeBuilder addComponents(List<MealComponent> componentList) {
         this.components.addAll(componentList);
         return this;

@@ -43,14 +43,6 @@ public class GroceryItem {
         propertyChangeSupport.firePropertyChange("bought", oldValue, this.bought);
     }
 
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-        propertyChangeSupport.addPropertyChangeListener(listener);
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        propertyChangeSupport.removePropertyChangeListener(listener);
-    }
-
     @Override
     public String toString() {
         return String.format("%s (%.2f %s)", name, quantity, unit);

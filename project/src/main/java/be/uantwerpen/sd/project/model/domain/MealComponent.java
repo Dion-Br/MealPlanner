@@ -12,14 +12,8 @@ public abstract class MealComponent {
 
     public abstract List<Ingredient> getIngredients();
 
-    public abstract boolean isComposite();
-
     public void add(MealComponent component) {
         throw new UnsupportedOperationException("Cannot add to leaf component");
-    }
-
-    public void remove(MealComponent component) {
-        throw new UnsupportedOperationException("Cannot remove from leaf component");
     }
 
     public String getName() {

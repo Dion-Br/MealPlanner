@@ -33,22 +33,12 @@ public class Recipe extends MealComponent {
     }
 
     @Override
-    public void remove(MealComponent component) {
-        components.remove(component);
-    }
-
-    @Override
     public List<Ingredient> getIngredients() {
         List<Ingredient> ingredients = new ArrayList<>();
         for (MealComponent component : components) {
             ingredients.addAll(component.getIngredients());
         }
         return ingredients;
-    }
-
-    @Override
-    public boolean isComposite() {
-        return true;
     }
 
     public String getDescription() {
