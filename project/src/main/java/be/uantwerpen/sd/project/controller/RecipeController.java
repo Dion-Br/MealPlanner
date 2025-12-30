@@ -19,12 +19,12 @@ public class RecipeController {
         this.view = view;
     }
 
-    public void addIngredient(String name, double quantity, Unit unit) {
+    public void addIngredient(String name, double quantity, Unit unit, List<String> tags) {
         if (name == null || name.isBlank() || quantity <= 0 || unit == null) {
             view.showError("Invalid input. Name, quantity and unit are required.");
             return;
         }
-        currentIngredients.add(new Ingredient(name, quantity, unit));
+        currentIngredients.add(new Ingredient(name, quantity, unit, tags));
     }
 
     public void removeIngredient(int index) {

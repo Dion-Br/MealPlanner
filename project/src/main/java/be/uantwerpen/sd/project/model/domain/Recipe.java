@@ -11,6 +11,23 @@ public class Recipe extends MealComponent {
         this.description = description;
     }
 
+    public List<String> calculateTags() {
+        List<Ingredient> allIngredients = getIngredients();
+        if (allIngredients.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Start with the tags of the first ingredient
+        List<String> commonTags = new ArrayList<>(allIngredients.get(0).getTags());
+
+        // Check for matches is all other ingredients
+        for (Ingredient ingredient : allIngredients) {
+            commonTags.retainAll(ingredient.getTags());
+        }
+
+        return commonTags;
+    }
+
     @Override
     public void add(MealComponent component) {
         components.add(component);
@@ -49,10 +66,10 @@ public class Recipe extends MealComponent {
     @Override
     public String toString() {
         return "Recipe{" +
-                "description='" + getDescription() + '\'' +
+                "name='" + getName() + '\'' +
+                ", description='" + description + '\'' +
+                ", tags=" + calculateTags() + '\'' +
                 ", components=" + components +
-                ", name='" + getName() + '\'' +
-                ", name='" + getName() + '\'' +
-                "} " + super.toString();
+                "}";
     }
 }
