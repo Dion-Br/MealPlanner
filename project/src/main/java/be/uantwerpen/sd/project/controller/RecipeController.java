@@ -14,12 +14,12 @@ public class RecipeController {
 
     private final RecipeService recipeService;
     private final RecipeView view;
-    private final List<MealComponent> currentIngredients;
+    private final List<MealComponent> currentComponents;
 
     public RecipeController(RecipeView view, RecipeService recipeService) {
         this.view = view;
         this.recipeService = recipeService;
-        this.currentIngredients = new ArrayList<>();
+        this.currentComponents = new ArrayList<>();
     }
 
     public void addIngredient(String name, double quantity, Unit unit, List<String> tags) {
@@ -28,24 +28,32 @@ public class RecipeController {
             return;
         }
         List<String> ingredientTags = tags != null ? tags : new ArrayList<>();
-        currentIngredients.add(new Ingredient(name, quantity, unit, ingredientTags));
+        currentComponents.add(new Ingredient(name, quantity, unit, ingredientTags));
     }
 
-    public void removeIngredient(int index) {
+    public void addSubRecipe(Recipe recipe) {
+        if (recipe == null) {
+            view.showError("Please select a recipe to add.");
+            return;
+        }
+        currentComponents.add(recipe);
+    }
+
+    public void removeComponent(int index) {
         if (isValidIndex(index)) {
-            currentIngredients.remove(index);
+            currentComponents.remove(index);
         } else {
-            view.showError("Invalid ingredient selection.");
+            view.showError("Invalid component selection.");
         }
     }
 
     public void addRecipe(String name, String description) {
         if (!isValidRecipeInput(name, description)) {
-            view.showError("Recipe must have a name, description, and at least one ingredient.");
+            view.showError("Recipe must have a name, description, and at least one component.");
             return;
         }
-        recipeService.buildRecipe(name, description, new ArrayList<>(currentIngredients));
-        currentIngredients.clear();
+        recipeService.buildRecipe(name, description, new ArrayList<>(currentComponents));
+        currentComponents.clear();
         refreshView();
     }
 
@@ -54,22 +62,22 @@ public class RecipeController {
         refreshView();
     }
 
-    public void clearIngredients() {
-        currentIngredients.clear();
+    public void clearComponents() {
+        currentComponents.clear();
     }
 
     public void prepareEdit(Recipe recipe) {
-        currentIngredients.clear();
-        currentIngredients.addAll(recipe.getComponents());
+        currentComponents.clear();
+        currentComponents.addAll(recipe.getComponents());
     }
 
     public void updateRecipe(Recipe originalRecipe, String name, String description) {
         if (!isValidRecipeInput(name, description)) {
-            view.showError("Recipe must have a name, description, and at least one ingredient.");
+            view.showError("Recipe must have a name, description, and at least one component.");
             return;
         }
-        recipeService.updateRecipe(originalRecipe, name, description, currentIngredients);
-        currentIngredients.clear();
+        recipeService.updateRecipe(originalRecipe, name, description, currentComponents);
+        currentComponents.clear();
         refreshView();
     }
 
@@ -77,8 +85,20 @@ public class RecipeController {
         view.showRecipes(recipeService.getAllRecipes());
     }
 
-    public List<MealComponent> getCurrentIngredients() {
-        return new ArrayList<>(currentIngredients);
+    public List<MealComponent> getCurrentComponents() {
+        return new ArrayList<>(currentComponents);
+    }
+
+    public List<Recipe> getAvailableRecipes() {
+        return recipeService.getAllRecipes();
+    }
+
+    public List<Recipe> getAvailableRecipesExcluding(Recipe excludeRecipe) {
+        List<Recipe> recipes = new ArrayList<>(recipeService.getAllRecipes());
+        if (excludeRecipe != null) {
+            recipes.remove(excludeRecipe);
+        }
+        return recipes;
     }
 
     private boolean isValidIngredientInput(String name, double quantity, Unit unit) {
@@ -88,10 +108,10 @@ public class RecipeController {
     private boolean isValidRecipeInput(String name, String description) {
         return name != null && !name.isBlank()
                 && description != null && !description.isBlank()
-                && !currentIngredients.isEmpty();
+                && !currentComponents.isEmpty();
     }
 
     private boolean isValidIndex(int index) {
-        return index >= 0 && index < currentIngredients.size();
+        return index >= 0 && index < currentComponents.size();
     }
 }
