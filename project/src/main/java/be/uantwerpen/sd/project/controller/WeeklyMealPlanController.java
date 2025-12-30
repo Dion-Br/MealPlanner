@@ -7,6 +7,7 @@ import be.uantwerpen.sd.project.service.RecipeService;
 import be.uantwerpen.sd.project.view.WeeklyMealPlanFxView;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class WeeklyMealPlanController {
     private final WeeklyMealPlan model;
@@ -23,8 +24,24 @@ public class WeeklyMealPlanController {
         this.view = view;
     }
 
-    public List<Recipe> getAvailableRecipes() {
-        return recipeService.getAllRecipes();
+    public List<String> getUniqueTags() {
+        return recipeService.getAllRecipes().stream()
+                .flatMap(r -> r.calculateTags().stream())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    public List<Recipe> getAvailableRecipes(String filterTag) {
+        List<Recipe> allRecipes = recipeService.getAllRecipes();
+
+        if (filterTag == null || filterTag.isBlank() || filterTag.equals("All")) {
+            return allRecipes;
+        }
+
+        return allRecipes.stream()
+                .filter(r -> r.calculateTags().contains(filterTag))
+                .collect(Collectors.toList());
     }
 
     public void addMealToPlan(DaysOfTheWeek day, MealType type, Recipe recipe) {

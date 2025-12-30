@@ -24,9 +24,12 @@ public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeLi
     private final VBox daysContainer = new VBox(10);
     private final ComboBox<Recipe> recipeCombo = new ComboBox<>();
 
+    // ComboBox for tags instead of TextField
+    private final ComboBox<String> tagFilterCombo = new ComboBox<>();
+
     public WeeklyMealPlanFxView(WeeklyMealPlan model) {
         this.model = model;
-        this.model.addListener(this); // Observe the model
+        this.model.addListener(this);
 
         setPadding(new Insets(10));
 
@@ -43,8 +46,15 @@ public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeLi
         typeCombo.setPromptText("Select Type");
         typeCombo.getSelectionModel().selectFirst();
 
+        // Configure Tag Combo
+        tagFilterCombo.setPromptText("Filter by Tag");
+        tagFilterCombo.setPrefWidth(150);
+
+        // When user selects a tag, auto-refresh the recipe list
+        tagFilterCombo.setOnAction(e -> refreshRecipeList(false));
+
         recipeCombo.setPromptText("Select Recipe");
-        // Converter to show Recipe Name instead of Object ID
+        recipeCombo.setPrefWidth(200);
         recipeCombo.setConverter(new StringConverter<>() {
             @Override
             public String toString(Recipe recipe) {
@@ -65,38 +75,70 @@ public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeLi
             }
         });
 
-        // Refresh recipes button (since they might change in the other tab)
+        // Refresh button: Updates BOTH the tag list and the recipe list
         Button refreshBtn = new Button("↻");
-        refreshBtn.setTooltip(new Tooltip("Refresh Recipe List"));
-        refreshBtn.setOnAction(e -> refreshRecipeList());
+        refreshBtn.setTooltip(new Tooltip("Refresh Recipes & Tags"));
+        refreshBtn.setOnAction(e -> refreshRecipeList(true));
 
-        topBar.getChildren().addAll(dayCombo, typeCombo, recipeCombo, refreshBtn, addButton);
+        topBar.getChildren().addAll(dayCombo, typeCombo, tagFilterCombo, recipeCombo, refreshBtn, addButton);
         setTop(topBar);
 
-        // --- CENTER: The 7 Days List ---
         ScrollPane scrollPane = new ScrollPane(daysContainer);
         scrollPane.setFitToWidth(true);
         setCenter(scrollPane);
 
-        renderDays(); // Initial render
+        renderDays();
     }
 
     public void setController(WeeklyMealPlanController controller) {
         this.controller = controller;
-        refreshRecipeList();
+        refreshRecipeList(true); // Initial load of tags and recipes
     }
 
-    public void refreshRecipeList() {
-        if(controller != null) {
-            recipeCombo.setItems(FXCollections.observableArrayList(controller.getAvailableRecipes()));
+    /**
+     * Refreshes the recipe dropdown.
+     * @param reloadTags If true, it also re-fetches the available tags from the controller.
+     */
+    public void refreshRecipeList(boolean reloadTags) {
+        if (controller == null) return;
+
+        // 1. Reload Tags if requested
+        if (reloadTags) {
+            String currentSelection = tagFilterCombo.getValue();
+            List<String> tags = new ArrayList<>();
+            tags.add("All"); // Add an option to clear filter
+            tags.addAll(controller.getUniqueTags());
+
+            tagFilterCombo.setItems(FXCollections.observableArrayList(tags));
+
+            // Restore selection if still valid, otherwise select "All"
+            if (currentSelection != null && tags.contains(currentSelection)) {
+                tagFilterCombo.setValue(currentSelection);
+            } else {
+                tagFilterCombo.getSelectionModel().selectFirst();
+            }
+        }
+
+        // 2. Fetch Recipes based on selected tag
+        String filter = tagFilterCombo.getValue();
+        List<Recipe> recipes = controller.getAvailableRecipes(filter);
+
+        recipeCombo.setItems(FXCollections.observableArrayList(recipes));
+        if (!recipes.isEmpty()) {
+            recipeCombo.getSelectionModel().selectFirst();
+        } else {
+            recipeCombo.getSelectionModel().clearSelection();
         }
     }
 
-    // React to Model Changes (Observer Pattern)
+    // [FIXED] Changed to true to ensure tags update when switching tabs
+    public void refreshRecipeList() {
+        refreshRecipeList(true);
+    }
+
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if ("mealPlanUpdated".equals(evt.getPropertyName())) {
-            // JavaFX UI updates must run on the JavaFX thread
             Platform.runLater(this::renderDays);
         }
     }
@@ -104,7 +146,7 @@ public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeLi
     private void renderDays() {
         daysContainer.getChildren().clear();
 
-        for (DayPlan dayPlan : model.getDayPlans()) { //
+        for (DayPlan dayPlan : model.getDayPlans()) {
             VBox dayBox = new VBox(5);
             dayBox.setStyle("-fx-background-color: #f4f4f4; -fx-padding: 10; -fx-background-radius: 5;");
 
@@ -113,24 +155,17 @@ public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeLi
 
             dayBox.getChildren().add(dayTitle);
 
-            if (dayPlan.getPlannedMeals().isEmpty()) { //
+            if (dayPlan.getPlannedMeals().isEmpty()) {
                 dayBox.getChildren().add(new Label("No meals planned."));
             } else {
-                // [CHANGED] Create a copy of the list and sort it by MealType (enum order)
                 List<PlannedMeal> sortedMeals = new ArrayList<>(dayPlan.getPlannedMeals());
                 sortedMeals.sort(Comparator.comparing(PlannedMeal::getMealType));
 
                 for (PlannedMeal pm : sortedMeals) {
-                    // Create a container for the row
                     HBox mealRow = new HBox(10);
-
-                    // Text for the meal
-                    String text = String.format("%-10s : %s",
-                            pm.getMealType(),
-                            pm.getMealComponent().getName());
+                    String text = String.format("%-10s : %s", pm.getMealType(), pm.getMealComponent().getName());
                     Label mealLabel = new Label(text);
 
-                    // Remove Button
                     Button removeBtn = new Button("x");
                     removeBtn.setStyle("-fx-text-fill: red; -fx-font-weight: bold; -fx-padding: 2 5 2 5;");
                     removeBtn.setOnAction(e -> {
@@ -139,10 +174,7 @@ public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeLi
                         }
                     });
 
-                    // Add label and button to the row
                     mealRow.getChildren().addAll(mealLabel, removeBtn);
-
-                    // Add the row to the day's box
                     dayBox.getChildren().add(mealRow);
                 }
             }
