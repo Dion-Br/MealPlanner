@@ -5,6 +5,7 @@ import be.uantwerpen.sd.project.model.domain.MealComponent;
 import be.uantwerpen.sd.project.model.domain.Recipe;
 import be.uantwerpen.sd.project.model.domain.enums.Unit;
 import be.uantwerpen.sd.project.repository.RecipeRepository;
+import be.uantwerpen.sd.project.service.RecipeService;
 import be.uantwerpen.sd.project.view.RecipeView;
 import org.junit.jupiter.api.*;
 
@@ -21,6 +22,7 @@ import static org.mockito.Mockito.mock;
 public class RecipeControllerITest {
 
     private RecipeController controller;
+    private RecipeService recipeService;
     private RecipeView view;
 
     @BeforeEach
@@ -31,7 +33,11 @@ public class RecipeControllerITest {
         // Reset singleton repository between tests
         resetRepository();
 
-        controller = new RecipeController(view);
+        // Real repository + service (integration aspect)
+        RecipeRepository repository = RecipeRepository.getInstance();
+        recipeService = new RecipeService(repository);
+
+        controller = new RecipeController(view, recipeService);
     }
 
     //Utility to clear the singleton repository using reflection
@@ -46,17 +52,17 @@ public class RecipeControllerITest {
     @Test
     void shouldCreateRecipeAndShowItInView() {
         // Arrange
-        controller.addIngredient("Tomato", 2, Unit.PIECE);
-        controller.addIngredient("Salt", 1, Unit.GRAM);
+        controller.addIngredient("Tomato", 2, Unit.PIECE, List.of("Fresh"));
+        controller.addIngredient("Salt", 1, Unit.GRAM, List.of("Spice"));
 
         // Act
         controller.addRecipe("Tomato Salad", "Fresh and simple");
 
         // Assert: repository state
-        RecipeRepository repo = RecipeRepository.getInstance();
-        assertEquals(1, repo.findAll().size());
+        List<Recipe> recipes = RecipeRepository.getInstance().findAll();
+        assertEquals(1, recipes.size());
 
-        Recipe recipe = repo.findAll().get(0);
+        Recipe recipe = recipes.get(0);
         assertEquals("Tomato Salad", recipe.getName());
         assertEquals("Fresh and simple", recipe.getDescription());
         assertEquals(2, recipe.getIngredients().size());
@@ -69,11 +75,11 @@ public class RecipeControllerITest {
     @Test
     void shouldShowErrorWhenAddingRecipeWithoutIngredients() {
         // Act
-        controller.addRecipe("Empty Recipe", "No ingredients");
+        controller.addRecipe("Empty Recipe", "No components");
 
         // Assert
         verify(view).showError(
-                "Recipe must have a name, description, and at least one ingredient."
+                "Recipe must have a name, description, and at least one component."
         );
         verify(view, never()).showRecipes(any());
     }
@@ -81,7 +87,7 @@ public class RecipeControllerITest {
     @Test
     void shouldRemoveRecipeAndUpdateView() {
         // Arrange
-        controller.addIngredient("Flour", 500, Unit.GRAM);
+        controller.addIngredient("Flour", 500, Unit.GRAM, List.of("Baking"));
         controller.addRecipe("Bread", "Simple bread");
 
         Recipe recipe = RecipeRepository.getInstance().findAll().get(0);
@@ -97,8 +103,7 @@ public class RecipeControllerITest {
     @Test
     void shouldShowErrorOnInvalidIngredientInput() {
         // Act
-        controller.addIngredient("", -1, null);
-
+        controller.addIngredient("", -1, null, null);
         // Assert
         verify(view).showError("Invalid input. Name, quantity and unit are required.");
     }
@@ -106,15 +111,27 @@ public class RecipeControllerITest {
     @Test
     void shouldRemoveIngredientByIndex() {
         // Arrange
-        controller.addIngredient("Sugar", 100, Unit.GRAM);
-        controller.addIngredient("Butter", 50, Unit.GRAM);
+        controller.addIngredient("Sugar", 100, Unit.GRAM, List.of("Sweet"));
+        controller.addIngredient("Butter", 50, Unit.GRAM, List.of("Dairy"));
 
         // Act
-        controller.removeIngredient(0);
+        controller.removeComponent(0);
 
         // Assert
-        List<MealComponent> ingredients = controller.getCurrentIngredients();
+        List<MealComponent> ingredients = controller.getCurrentComponents();
         assertEquals(1, ingredients.size());
         assertEquals("Butter", ingredients.get(0).getName());
+    }
+
+    @Test
+    void shouldShowErrorOnInvalidComponentIndex() {
+        // Arrange
+        controller.addIngredient("Sugar", 100, Unit.GRAM, List.of("Sweet"));
+
+        // Act
+        controller.removeComponent(5);
+
+        // Assert
+        verify(view).showError("Invalid component selection.");
     }
 }

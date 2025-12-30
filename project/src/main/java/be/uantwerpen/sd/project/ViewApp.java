@@ -9,10 +9,12 @@ import be.uantwerpen.sd.project.service.RecipeService;
 import be.uantwerpen.sd.project.view.GroceryFxView;
 import be.uantwerpen.sd.project.view.RecipeFxView;
 import be.uantwerpen.sd.project.view.WeeklyMealPlanFxView;
+import be.uantwerpen.sd.project.view.WeeklyMealPlanView;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 public class ViewApp extends Application {
@@ -31,7 +33,7 @@ public class ViewApp extends Application {
         recipeRepository.addPropertyChangeListener(mealPlan);
 
         RecipeFxView recipeView = new RecipeFxView();
-        WeeklyMealPlanFxView planView = new WeeklyMealPlanFxView(mealPlan);
+        WeeklyMealPlanView planView = new WeeklyMealPlanFxView(mealPlan);
         GroceryFxView groceryView = new GroceryFxView(groceryGen);
 
         RecipeController recipeController = new RecipeController(recipeView, recipeService);
@@ -49,13 +51,13 @@ public class ViewApp extends Application {
         stage.show();
     }
 
-    private TabPane createTabPane(RecipeFxView recipeView, WeeklyMealPlanFxView planView, GroceryFxView groceryView) {
+    private TabPane createTabPane(RecipeFxView recipeView, WeeklyMealPlanView  planView, GroceryFxView groceryView) {
         TabPane tabPane = new TabPane();
 
         Tab recipeTab = new Tab("Manage Recipes", recipeView);
         recipeTab.setClosable(false);
 
-        Tab planTab = new Tab("Weekly Plan", planView);
+        Tab planTab = new Tab("Weekly Plan", (BorderPane) planView);
         planTab.setClosable(false);
         planTab.setOnSelectionChanged(e -> {
             if (planTab.isSelected()) {

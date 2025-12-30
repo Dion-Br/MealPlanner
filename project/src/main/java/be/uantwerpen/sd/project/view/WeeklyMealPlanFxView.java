@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeListener {
+public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeListener, WeeklyMealPlanView {
 
     private final WeeklyMealPlan model;
     private final VBox daysContainer;
@@ -138,10 +138,12 @@ public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeLi
         refreshRecipeList(true);
     }
 
+    @Override
     public void refreshRecipeList() {
         refreshRecipeList(true);
     }
 
+    @Override
     public void refreshRecipeList(boolean reloadTags) {
         if (controller == null) return;
 

@@ -7,7 +7,7 @@ import be.uantwerpen.sd.project.model.domain.WeeklyMealPlan;
 import be.uantwerpen.sd.project.model.domain.enums.DaysOfTheWeek;
 import be.uantwerpen.sd.project.model.domain.enums.MealType;
 import be.uantwerpen.sd.project.service.RecipeService;
-import be.uantwerpen.sd.project.view.WeeklyMealPlanFxView;
+import be.uantwerpen.sd.project.view.WeeklyMealPlanView;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,14 +16,14 @@ public class WeeklyMealPlanController {
 
     private final WeeklyMealPlan model;
     private final RecipeService recipeService;
-    private WeeklyMealPlanFxView view;
+    private WeeklyMealPlanView view;
 
     public WeeklyMealPlanController(WeeklyMealPlan model, RecipeService recipeService) {
         this.model = model;
         this.recipeService = recipeService;
     }
 
-    public void setView(WeeklyMealPlanFxView view) {
+    public void setView(WeeklyMealPlanView view) {
         this.view = view;
     }
 

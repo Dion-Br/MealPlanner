@@ -15,13 +15,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class RecipeServiceUTest {
     private RecipeService service;
-
+    private RecipeRepository repository;
 
     @BeforeEach
     void setUp() throws Exception {
-        service = new RecipeService();
+        repository = RecipeRepository.getInstance();
         resetRepository();
+        service = new RecipeService(repository);
     }
+
     private void resetRepository() throws Exception {
         RecipeRepository repo = RecipeRepository.getInstance();
 
@@ -34,8 +36,8 @@ public class RecipeServiceUTest {
     @Test
     void buildRecipe_shouldCreateAndStoreRecipe() {
         // Arrange
-        Ingredient tomato = new Ingredient("Tomato", 2, Unit.PIECE);
-        Ingredient salt = new Ingredient("Salt", 1, Unit.GRAM);
+        Ingredient tomato = new Ingredient("Tomato", 2, Unit.PIECE,List.of("quick", "easy"));
+        Ingredient salt = new Ingredient("Salt", 1, Unit.GRAM,List.of("seasoning"));
 
         // Act
         Recipe recipe = service.buildRecipe(
@@ -49,6 +51,15 @@ public class RecipeServiceUTest {
         assertEquals("Tomato Salad", recipe.getName());
         assertEquals("Fresh and simple", recipe.getDescription());
         assertEquals(2, recipe.getIngredients().size());
+        List<Ingredient> ingredients = recipe.getIngredients();
+        Ingredient tomatoIngredient = ingredients.stream().filter(i -> i.getName().equals("Tomato")).findFirst().get();
+        assertTrue(tomatoIngredient.getTags().contains("quick"));
+
+        // Check that tags are preserved
+        assertTrue(recipe.getIngredients().stream()
+                .anyMatch(i -> i.getName().equals("Tomato") && i.getTags().contains("quick")));
+        assertTrue(recipe.getIngredients().stream()
+                .anyMatch(i -> i.getName().equals("Salt") && i.getTags().contains("seasoning")));
 
         List<Recipe> allRecipes = service.getAllRecipes();
         assertEquals(1, allRecipes.size());
