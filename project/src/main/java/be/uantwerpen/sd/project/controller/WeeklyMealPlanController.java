@@ -1,9 +1,6 @@
 package be.uantwerpen.sd.project.controller;
 
-import be.uantwerpen.sd.project.model.domain.DayPlan;
-import be.uantwerpen.sd.project.model.domain.PlannedMeal;
-import be.uantwerpen.sd.project.model.domain.Recipe;
-import be.uantwerpen.sd.project.model.domain.WeeklyMealPlan;
+import be.uantwerpen.sd.project.model.domain.*;
 import be.uantwerpen.sd.project.model.domain.enums.DaysOfTheWeek;
 import be.uantwerpen.sd.project.model.domain.enums.MealType;
 import be.uantwerpen.sd.project.service.RecipeService;
@@ -27,7 +24,7 @@ public class WeeklyMealPlanController {
         this.view = view;
     }
 
-    public List<String> getUniqueTags() {
+    public List<Tag> getUniqueTags() {
         return recipeService.getAllRecipes().stream()
                 .flatMap(r -> r.calculateTags().stream())
                 .distinct()
@@ -35,7 +32,7 @@ public class WeeklyMealPlanController {
                 .collect(Collectors.toList());
     }
 
-    public List<Recipe> getAvailableRecipes(String filterTag) {
+    public List<Recipe> getAvailableRecipes(Tag filterTag) {
         List<Recipe> allRecipes = recipeService.getAllRecipes();
 
         if (isEmptyFilter(filterTag)) {
@@ -66,8 +63,8 @@ public class WeeklyMealPlanController {
         }
     }
 
-    private boolean isEmptyFilter(String filterTag) {
-        return filterTag == null || filterTag.isBlank() || filterTag.equals("All");
+    private boolean isEmptyFilter(Tag filterTag) {
+        return filterTag == null || filterTag.getName().equalsIgnoreCase("All");
     }
 
     private boolean isValidMealInput(DaysOfTheWeek day, MealType type, Recipe recipe) {

@@ -3,6 +3,7 @@ package be.uantwerpen.sd.project;
 import be.uantwerpen.sd.project.controller.RecipeController;
 import be.uantwerpen.sd.project.model.domain.MealComponent;
 import be.uantwerpen.sd.project.model.domain.Recipe;
+import be.uantwerpen.sd.project.model.domain.Tag;
 import be.uantwerpen.sd.project.model.domain.enums.Unit;
 import be.uantwerpen.sd.project.repository.RecipeRepository;
 import be.uantwerpen.sd.project.service.RecipeService;
@@ -52,8 +53,8 @@ public class RecipeControllerITest {
     @Test
     void shouldCreateRecipeAndShowItInView() {
         // Arrange
-        controller.addIngredient("Tomato", 2, Unit.PIECE, List.of("Fresh"));
-        controller.addIngredient("Salt", 1, Unit.GRAM, List.of("Spice"));
+        controller.addIngredient("Tomato", 2, Unit.PIECE, List.of(new Tag("Fresh")));
+        controller.addIngredient("Salt", 1, Unit.GRAM, List.of(new Tag("Spice")));
 
         // Act
         controller.addRecipe("Tomato Salad", "Fresh and simple");
@@ -87,7 +88,7 @@ public class RecipeControllerITest {
     @Test
     void shouldRemoveRecipeAndUpdateView() {
         // Arrange
-        controller.addIngredient("Flour", 500, Unit.GRAM, List.of("Baking"));
+        controller.addIngredient("Flour", 500, Unit.GRAM, List.of(new Tag("Baking")));
         controller.addRecipe("Bread", "Simple bread");
 
         Recipe recipe = RecipeRepository.getInstance().findAll().get(0);
@@ -111,8 +112,8 @@ public class RecipeControllerITest {
     @Test
     void shouldRemoveIngredientByIndex() {
         // Arrange
-        controller.addIngredient("Sugar", 100, Unit.GRAM, List.of("Sweet"));
-        controller.addIngredient("Butter", 50, Unit.GRAM, List.of("Dairy"));
+        controller.addIngredient("Sugar", 100, Unit.GRAM, List.of(new Tag("Sweet")));
+        controller.addIngredient("Butter", 50, Unit.GRAM, List.of(new Tag("Dairy")));
 
         // Act
         controller.removeComponent(0);
@@ -126,7 +127,7 @@ public class RecipeControllerITest {
     @Test
     void shouldShowErrorOnInvalidComponentIndex() {
         // Arrange
-        controller.addIngredient("Sugar", 100, Unit.GRAM, List.of("Sweet"));
+        controller.addIngredient("Sugar", 100, Unit.GRAM, List.of(new Tag("Sweet")));
 
         // Act
         controller.removeComponent(5);

@@ -14,13 +14,13 @@ public class Recipe extends MealComponent {
         this.components = new ArrayList<>();
     }
 
-    public List<String> calculateTags() {
+    public List<Tag> calculateTags() {
         List<Ingredient> allIngredients = getIngredients();
         if (allIngredients.isEmpty()) {
             return new ArrayList<>();
         }
 
-        List<String> commonTags = new ArrayList<>(allIngredients.get(0).getTags());
+        List<Tag> commonTags = new ArrayList<>(allIngredients.get(0).getTags());
         for (Ingredient ingredient : allIngredients) {
             commonTags.retainAll(ingredient.getTags());
         }

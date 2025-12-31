@@ -2,6 +2,7 @@ package be.uantwerpen.sd.project;
 
 import be.uantwerpen.sd.project.model.domain.Ingredient;
 import be.uantwerpen.sd.project.model.domain.Recipe;
+import be.uantwerpen.sd.project.model.domain.Tag;
 import be.uantwerpen.sd.project.model.domain.enums.Unit;
 import be.uantwerpen.sd.project.repository.RecipeRepository;
 import be.uantwerpen.sd.project.service.RecipeService;
@@ -36,8 +37,8 @@ public class RecipeServiceUTest {
     @Test
     void buildRecipe_shouldCreateAndStoreRecipe() {
         // Arrange
-        Ingredient tomato = new Ingredient("Tomato", 2, Unit.PIECE,List.of("quick", "easy"));
-        Ingredient salt = new Ingredient("Salt", 1, Unit.GRAM,List.of("seasoning"));
+        Ingredient tomato = new Ingredient("Tomato", 2, Unit.PIECE, List.of(new Tag("quick"), new Tag("easy")));
+        Ingredient salt = new Ingredient("Salt", 1, Unit.GRAM,List.of(new Tag("seasoning")));
 
         // Act
         Recipe recipe = service.buildRecipe(
@@ -51,15 +52,20 @@ public class RecipeServiceUTest {
         assertEquals("Tomato Salad", recipe.getName());
         assertEquals("Fresh and simple", recipe.getDescription());
         assertEquals(2, recipe.getIngredients().size());
+
         List<Ingredient> ingredients = recipe.getIngredients();
-        Ingredient tomatoIngredient = ingredients.stream().filter(i -> i.getName().equals("Tomato")).findFirst().get();
-        assertTrue(tomatoIngredient.getTags().contains("quick"));
+        Ingredient tomatoIngredient = ingredients
+                .stream()
+                .filter(i -> i.getName().equals("Tomato"))
+                .findFirst()
+                .orElseThrow();
+        assertTrue(tomatoIngredient.getTags().contains(new Tag("quick")));
 
         // Check that tags are preserved
         assertTrue(recipe.getIngredients().stream()
-                .anyMatch(i -> i.getName().equals("Tomato") && i.getTags().contains("quick")));
+                .anyMatch(i -> i.getName().equals("Tomato") && i.getTags().contains(new Tag("quick"))));
         assertTrue(recipe.getIngredients().stream()
-                .anyMatch(i -> i.getName().equals("Salt") && i.getTags().contains("seasoning")));
+                .anyMatch(i -> i.getName().equals("Salt") && i.getTags().contains(new Tag("seasoning"))));
 
         List<Recipe> allRecipes = service.getAllRecipes();
         assertEquals(1, allRecipes.size());

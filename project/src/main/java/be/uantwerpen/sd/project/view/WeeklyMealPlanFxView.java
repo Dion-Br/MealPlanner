@@ -1,10 +1,7 @@
 package be.uantwerpen.sd.project.view;
 
 import be.uantwerpen.sd.project.controller.WeeklyMealPlanController;
-import be.uantwerpen.sd.project.model.domain.DayPlan;
-import be.uantwerpen.sd.project.model.domain.PlannedMeal;
-import be.uantwerpen.sd.project.model.domain.Recipe;
-import be.uantwerpen.sd.project.model.domain.WeeklyMealPlan;
+import be.uantwerpen.sd.project.model.domain.*;
 import be.uantwerpen.sd.project.model.domain.enums.DaysOfTheWeek;
 import be.uantwerpen.sd.project.model.domain.enums.MealType;
 import javafx.application.Platform;
@@ -31,7 +28,7 @@ public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeLi
     private final WeeklyMealPlan model;
     private final VBox daysContainer;
     private final ComboBox<Recipe> recipeComboBox;
-    private final ComboBox<String> tagFilterComboBox;
+    private final ComboBox<Tag> tagFilterComboBox;
     private final ComboBox<DaysOfTheWeek> dayComboBox;
     private final ComboBox<MealType> typeComboBox;
 
@@ -154,9 +151,9 @@ public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeLi
     }
 
     private void reloadTagFilter() {
-        String currentSelection = tagFilterComboBox.getValue();
-        List<String> tags = new ArrayList<>();
-        tags.add("All");
+        Tag currentSelection = tagFilterComboBox.getValue();
+        List<Tag> tags = new ArrayList<>();
+        tags.add(new Tag("All"));
         tags.addAll(controller.getUniqueTags());
 
         tagFilterComboBox.setItems(FXCollections.observableArrayList(tags));
@@ -169,7 +166,7 @@ public class WeeklyMealPlanFxView extends BorderPane implements PropertyChangeLi
     }
 
     private void loadRecipes() {
-        String filter = tagFilterComboBox.getValue();
+        Tag filter = tagFilterComboBox.getValue();
         List<Recipe> recipes = controller.getAvailableRecipes(filter);
 
         recipeComboBox.setItems(FXCollections.observableArrayList(recipes));

@@ -3,6 +3,7 @@ package be.uantwerpen.sd.project.controller;
 import be.uantwerpen.sd.project.model.domain.Ingredient;
 import be.uantwerpen.sd.project.model.domain.MealComponent;
 import be.uantwerpen.sd.project.model.domain.Recipe;
+import be.uantwerpen.sd.project.model.domain.Tag;
 import be.uantwerpen.sd.project.service.RecipeService;
 import be.uantwerpen.sd.project.view.RecipeView;
 import be.uantwerpen.sd.project.model.domain.enums.Unit;
@@ -22,12 +23,12 @@ public class RecipeController {
         this.currentComponents = new ArrayList<>();
     }
 
-    public void addIngredient(String name, double quantity, Unit unit, List<String> tags) {
+    public void addIngredient(String name, double quantity, Unit unit, List<Tag> tags) {
         if (!isValidIngredientInput(name, quantity, unit)) {
             view.showError("Invalid input. Name, quantity and unit are required.");
             return;
         }
-        List<String> ingredientTags = tags != null ? tags : new ArrayList<>();
+        List<Tag> ingredientTags = tags != null ? tags : new ArrayList<>();
         currentComponents.add(new Ingredient(name, quantity, unit, ingredientTags));
     }
 

@@ -4,6 +4,7 @@ import be.uantwerpen.sd.project.controller.RecipeController;
 import be.uantwerpen.sd.project.model.domain.Ingredient;
 import be.uantwerpen.sd.project.model.domain.MealComponent;
 import be.uantwerpen.sd.project.model.domain.Recipe;
+import be.uantwerpen.sd.project.model.domain.Tag;
 import be.uantwerpen.sd.project.model.domain.enums.Unit;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -234,7 +235,7 @@ public class RecipeFxView extends VBox implements RecipeView {
 
         try {
             double quantity = Double.parseDouble(quantityText);
-            List<String> tags = parseTags(tagsField.getText());
+            List<Tag> tags = parseTags(tagsField.getText());
 
             controller.addIngredient(name, quantity, unit, tags);
             componentItems.add(formatIngredient(name, quantity, unit, tags));
@@ -343,10 +344,11 @@ public class RecipeFxView extends VBox implements RecipeView {
         subRecipeComboBox.getSelectionModel().clearSelection();
     }
 
-    private List<String> parseTags(String tagString) {
+    private List<Tag> parseTags(String tagString) {
         return Arrays.stream(tagString.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isBlank())
+                .map(Tag::new) //conversion
                 .collect(Collectors.toList());
     }
 
@@ -360,8 +362,14 @@ public class RecipeFxView extends VBox implements RecipeView {
         return component.getName();
     }
 
-    private String formatIngredient(String name, double quantity, Unit unit, List<String> tags) {
-        String tagStr = tags.isEmpty() ? "" : " [" + String.join(", ", tags) + "]";
+    private String formatIngredient(String name, double quantity, Unit unit, List<Tag> tags) {
+        String tagStr = tags.isEmpty()
+                ? ""
+                : " [" +
+                tags.stream()
+                .map(Tag::getName)
+                .collect(Collectors.joining(", "))
+                + "]";
         return String.format("[Ingredient] %s (%.2f %s)%s", name, quantity, unit, tagStr);
     }
 
@@ -385,7 +393,10 @@ public class RecipeFxView extends VBox implements RecipeView {
         StringBuilder details = new StringBuilder();
         details.append(recipe.getName()).append(": ").append(recipe.getDescription()).append("\n");
 
-        String tags = String.join(", ", recipe.calculateTags());
+        String tags = recipe.calculateTags()
+                .stream()
+                .map(Tag::getName)
+                .collect(Collectors.joining(", "));
         details.append("Tags: ").append(tags.isEmpty() ? "None" : tags).append("\n\n");
 
         details.append("Components:\n");

@@ -10,9 +10,9 @@ public class Ingredient extends MealComponent {
 
     private double quantity;
     private Unit unit;
-    private List<String> tags;
+    private List<Tag> tags;
 
-    public Ingredient(String name, double quantity, Unit unit, List<String> tags) {
+    public Ingredient(String name, double quantity, Unit unit, List<Tag> tags) {
         super(name);
         this.quantity = quantity;
         this.unit = unit;
@@ -31,8 +31,8 @@ public class Ingredient extends MealComponent {
         return unit;
     }
 
-    public List<String> getTags() {
-        return Collections.unmodifiableList(tags);
+    public List<Tag> getTags() {
+        return tags;
     }
 
     @Override
