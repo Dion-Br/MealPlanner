@@ -13,40 +13,19 @@ public class PlannedMeal {
         this.mealComponent = mealComponent;
     }
 
-    public void changeMealType(MealType newMealType) {
-        this.mealType = newMealType;
-    }
-
-    public void changeMealComponent(MealComponent newMealComponent) {
-        this.mealComponent = newMealComponent;
-    }
-
-    public void setMealComponent(MealComponent newComponent) {
-        this.mealComponent = newComponent;
-        notifyParent();
-    }
-
     public MealType getMealType() {
         return mealType;
-    }
-
-    public void setMealType(MealType mealType) {
-        this.mealType = mealType;
     }
 
     public MealComponent getMealComponent() {
         return mealComponent;
     }
 
-    public WeeklyMealPlan getParent() {
-        return parent;
-    }
-
     public void setParent(WeeklyMealPlan parent) {
         this.parent = parent;
     }
 
-    private void notifyParent() {
+    private void notifyParent() { //??
         if (parent != null) {
             parent.notifyObservers();
         }

@@ -28,29 +28,12 @@ public class DayPlan {
         }
     }
 
-    public void changeDayOfTheWeek(DaysOfTheWeek newDay) {
-        this.day = newDay;
-    }
-
     public DaysOfTheWeek getDay() {
         return day;
     }
 
-    public void setDay(DaysOfTheWeek day) {
-        this.day = day;
-    }
-
     public List<PlannedMeal> getPlannedMeals() {
         return plannedMeals;
-    }
-
-    public void setPlannedMeals(List<PlannedMeal> plannedMeals) {
-        this.plannedMeals.clear();
-        this.plannedMeals.addAll(plannedMeals);
-    }
-
-    public WeeklyMealPlan getParent() {
-        return parent;
     }
 
     public void setParent(WeeklyMealPlan parent) {
